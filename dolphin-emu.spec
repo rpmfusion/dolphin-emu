@@ -1,0 +1,174 @@
+Name:           dolphin-emu
+Version:        3.0
+Release:        10%{?dist}
+Summary:        Gamecube / Wii / Triforce Emulator
+
+Url:            http://www.dolphin-emulator.com/
+#A license breakdown is included in copyright from Source1
+License:        GPLv2 and BSD and OpenSSL and Public Domain
+##Source can be grabbed using the script in Source1:
+#get-source-from-git.sh
+Source0:        %{name}-%{version}.tar.xz
+#Source1 just contains various missing files from the source
+#Most of it can be grabbed here:
+#https://github.com/chenxiaolong/Fedora-SRPMS/tree/master/dolphin-emu
+#The copyright file is from here:
+#http://ppa.launchpad.net/glennric/dolphin-emu/ubuntu/pool/main/d/dolphin-emu/dolphin-emu_3.0-0ubuntu2~lucid.debian.tar.gz
+Source1:        %{name}-extra.tar.xz
+#Kudos to Richard on this one (allows for shared clrun lib):
+Patch0:         %{name}-%{version}-clrun.patch
+#Build fix for gcc 4.7.0 (backwards compatible)
+#Note this is already fixed in the unstable version
+Patch1:         dolphin-emu-gcc-4.7.patch
+
+# Dolphin only runs on Intel x86 archictures
+ExclusiveArch:  i686 x86_64
+
+BuildRequires:  alsa-lib-devel
+BuildRequires:  bluez-libs-devel
+BuildRequires:  cmake
+BuildRequires:  cairo-devel
+BuildRequires:  glew-devel
+BuildRequires:  libao-devel
+BuildRequires:  libjpeg-turbo-devel
+BuildRequires:  libpng-devel
+BuildRequires:  libXrandr-devel
+BuildRequires:  lzo-devel
+BuildRequires:  mesa-libGLU-devel
+BuildRequires:  openal-soft-devel
+BuildRequires:  pulseaudio-libs-devel
+BuildRequires:  portaudio-devel
+BuildRequires:  SDL-devel
+BuildRequires:  wxGTK-devel
+BuildRequires:  zlib-devel
+BuildRequires:  Cg
+BuildRequires:  scons
+BuildRequires:  SFML-devel
+BuildRequires:  SOIL-devel
+BuildRequires:  gettext
+BuildRequires:  desktop-file-utils
+BuildRequires:  ffmpeg-devel
+BuildRequires:  bochs-devel
+BuildRequires:  opencl-utils-devel
+Requires:       hicolor-icon-theme
+
+%description
+#taken from here: http://code.google.com/p/dolphin-emu/
+Dolphin is a Gamecube, Wii and Triforce (the arcade machine based on the
+Gamecube) emulator which supports many extra features and abilities not 
+present on the original consoles.
+
+%prep
+%setup -q -a 1
+%patch0 -p1 -b .clrun
+%patch1 -p1 -b .gcc470
+sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
+
+#Remove all Bundled Libraries except Bochs:
+cd Externals
+rm -f -r `ls | grep -v 'Bochs_disasm'`
+#Remove Bundled Bochs source and replace with links:
+cd Bochs_disasm
+rm -f -r `ls | grep -v 'PowerPC*' | grep -v 'CMakeLists.txt'`
+mv PowerPCDisasm.cpp PowerPCDisasm.cc
+sed -i 's/cpp/cc/' CMakeLists.txt
+ln -s /usr/include/bochs/config.h ./config.h
+ln -s /usr/include/bochs/disasm/*.cc ./
+ln -s /usr/include/bochs/disasm/*.inc ./
+ln -s /usr/include/bochs/disasm/*.h ./
+
+%build
+#Required for ffmpeg header to build
+export CPATH='/usr/include/ffmpeg'
+%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+       -DBUILD_SHARED_LIBS:BOOL=OFF \
+       -DUSE_EXTERNAL_CLRUN=TRUE \
+       -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
+       .
+make %{?_smp_mflags}
+
+%install
+make %{?_smp_mflags} install DESTDIR=%{buildroot}
+
+#Install extras from source1:
+for size in 16 32 48 128 256; do
+    dim="${size}x${size}"
+    install -p -D -m 0644 %{name}-extra/%{name}$size.png \
+    %{buildroot}%{_datadir}/icons/hicolor/$dim/apps/%{name}.png
+done
+desktop-file-install --dir %{buildroot}%{_datadir}/applications \
+    %{name}-extra/%{name}.desktop
+install -p -D -m 0644  %{name}-extra/%{name}.1 \
+    %{buildroot}/%{_mandir}/man1/%{name}.1
+#This zerolength file has no purpose and removed in the unstable version:
+rm -f %{buildroot}/%{_datadir}/%{name}/user/GameConfig/WBEEJV.ini
+%find_lang %{name}
+
+%files -f %{name}.lang
+%doc license.txt Readme.txt docs/ActionReplay/CodeTypesGuide.txt
+%doc docs/ActionReplay/GCNCodeTypes.txt %{name}-extra/copyright
+%{_datadir}/%{name}
+%{_bindir}/%{name}
+%{_datadir}/icons/hicolor/*/apps/%{name}.png
+%{_datadir}/applications/%{name}.desktop
+%{_mandir}/man1/%{name}.*
+
+%post
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+
+%postun
+if [ $1 -eq 0 ] ; then
+    /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+fi
+
+%posttrans
+/usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
+%changelog
+* Mon Jun 25 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-10
+- Changed CLRun buildrequire package name
+- Renamed GCC 4.7 patch to suit fedora standards
+- Added missing hicolor-icon-theme require
+
+* Sat Jun 02 2012 Xiao-Long Chen <chenxiaolong@cxl.epac.to> - 3.0-9
+- Add patch to fix build with gcc 4.7.0 in fc17
+
+* Tue Apr 5 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-8
+- Removed bundled CLRun
+
+* Tue Mar 13 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-7
+- Removed bundled bochs
+- Fixed get-source-from-git.sh: missing checkout 3.0
+
+* Fri Feb 24 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-6
+- Removed purposeless zerolength file
+Lots of clean up and additions, thanks to Xiao-Long Chen:
+- Added man page
+- Added script to grab source
+- Added copyright file
+- Added ExclusiveArch
+- Added Some missing dependencies
+
+* Thu Feb 23 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-5
+- Fixed Licensing
+- Split sources and fixed source grab commands
+
+* Sun Jan 27 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-4
+- Tweaked to now be able to encode frame dumps
+
+* Sun Jan 22 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-3
+- Building now uses cmake macro
+- Turned off building shared libs
+- Removed unnecessary lines
+- Fixed debuginfo-without-sources issue
+- Reorganization of the SPEC for readability
+
+* Thu Jan 12 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-2
+- Fixed up spec to Fedora Guidelines
+- Fixed various trivial mistakes
+- Added SOIL and SFML to dependancies
+- Removed bundled SOIL and SFML from source spin
+
+* Sun Dec 18 2011 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-1
+- Initial package SPEC created
