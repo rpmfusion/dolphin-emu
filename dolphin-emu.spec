@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.0
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -19,7 +19,9 @@ Source1:        %{name}-extra.tar.xz
 Patch0:         %{name}-%{version}-clrun.patch
 #Build fix for gcc 4.7.0 (backwards compatible)
 #Note this is already fixed in the unstable version
-Patch1:         dolphin-emu-gcc-4.7.patch
+Patch1:         %{name}-%{version}-gcc-4.7.patch
+#Thanks to Xiao-Long Chen, fixes recent api change in libav
+Patch2:         %{name}-%{version}-libavapichange.patch
 
 # Dolphin only runs on Intel x86 archictures
 ExclusiveArch:  i686 x86_64
@@ -62,6 +64,7 @@ present on the original consoles.
 %setup -q -a 1
 %patch0 -p1 -b .clrun
 %patch1 -p1 -b .gcc470
+%patch2 -p1 -b .libav
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
 #Remove all Bundled Libraries except Bochs:
@@ -126,6 +129,10 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Fri Dec 14 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-11
+- Added patch for recent libav api change in fc18, credit to Xiao-Long Chen
+- Renamed patch 1 for consistency
+
 * Mon Jun 25 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-10
 - Changed CLRun buildrequire package name
 - Renamed GCC 4.7 patch to suit fedora standards
