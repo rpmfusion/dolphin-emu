@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.0
-Release:        10%{?dist}
+Release:        12%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -19,7 +19,7 @@ Source1:        %{name}-extra.tar.xz
 Patch0:         %{name}-%{version}-clrun.patch
 #Build fix for gcc 4.7.0 (backwards compatible)
 #Note this is already fixed in the unstable version
-Patch1:         dolphin-emu-gcc-4.7.patch
+Patch1:         %{name}-%{version}-gcc-4.7.patch
 
 # Dolphin only runs on Intel x86 archictures
 ExclusiveArch:  i686 x86_64
@@ -47,7 +47,6 @@ BuildRequires:  SFML-devel
 BuildRequires:  SOIL-devel
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
-BuildRequires:  ffmpeg-devel
 BuildRequires:  bochs-devel
 BuildRequires:  opencl-utils-devel
 Requires:       hicolor-icon-theme
@@ -78,10 +77,9 @@ ln -s /usr/include/bochs/disasm/*.inc ./
 ln -s /usr/include/bochs/disasm/*.h ./
 
 %build
-#Required for ffmpeg header to build
-export CPATH='/usr/include/ffmpeg'
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-       -DBUILD_SHARED_LIBS:BOOL=OFF \
+       -DBUILD_SHARED_LIBS=FALSE \
+       -DENCODE_FRAMEDUMPS=FALSE \
        -DUSE_EXTERNAL_CLRUN=TRUE \
        -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
        .
@@ -126,6 +124,14 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Sat Feb 16 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-12
+- Removed patch for libav and disabled ffmpeg, caused rendering issues
+- Minor consistency fixes to SPEC file
+
+* Fri Dec 14 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-11
+- Added patch for recent libav api change in fc18, credit to Xiao-Long Chen
+- Renamed patch 1 for consistency
+
 * Mon Jun 25 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-10
 - Changed CLRun buildrequire package name
 - Renamed GCC 4.7 patch to suit fedora standards
