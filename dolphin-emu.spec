@@ -1,6 +1,6 @@
 Name:           dolphin-emu
-Version:        3.0
-Release:        12%{?dist}
+Version:        3.5
+Release:        1%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -17,9 +17,8 @@ Source0:        %{name}-%{version}.tar.xz
 Source1:        %{name}-extra.tar.xz
 #Kudos to Richard on this one (allows for shared clrun lib):
 Patch0:         %{name}-%{version}-clrun.patch
-#Build fix for gcc 4.7.0 (backwards compatible)
-#Note this is already fixed in the unstable version
-Patch1:         %{name}-%{version}-gcc-4.7.patch
+#Allows for building with wxwidget 2.8.12, rather than 2.9.3
+Patch1:         %{name}-%{version}-wx28.patch
 
 # Dolphin only runs on Intel x86 archictures
 ExclusiveArch:  i686 x86_64
@@ -60,7 +59,7 @@ present on the original consoles.
 %prep
 %setup -q -a 1
 %patch0 -p1 -b .clrun
-%patch1 -p1 -b .gcc470
+%patch1 -p1 -b .wx28
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
 #Remove all Bundled Libraries except Bochs:
@@ -98,8 +97,6 @@ desktop-file-install --dir %{buildroot}%{_datadir}/applications \
     %{name}-extra/%{name}.desktop
 install -p -D -m 0644  %{name}-extra/%{name}.1 \
     %{buildroot}/%{_mandir}/man1/%{name}.1
-#This zerolength file has no purpose and removed in the unstable version:
-rm -f %{buildroot}/%{_datadir}/%{name}/user/GameConfig/WBEEJV.ini
 %find_lang %{name}
 
 %files -f %{name}.lang
@@ -124,6 +121,10 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-1
+- Updated to latest stable: removed GCC patch, updated CLRun patch
+- Added patch to build on wxwidgets 2.8 (temporary workaround)
+
 * Sat Feb 16 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-12
 - Removed patch for libav and disabled ffmpeg, caused rendering issues
 - Minor consistency fixes to SPEC file
