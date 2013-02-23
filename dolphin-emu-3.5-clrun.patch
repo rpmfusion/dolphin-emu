@@ -1,0 +1,29 @@
+diff -rupN dolphin-emu-3.5.orig/CMakeLists.txt dolphin-emu-3.5/CMakeLists.txt
+--- dolphin-emu-3.5.orig/CMakeLists.txt	2013-02-19 18:38:35.000000000 -0500
++++ dolphin-emu-3.5/CMakeLists.txt	2013-02-20 14:04:51.356373309 -0500
+@@ -477,10 +477,21 @@ else()
+ 	check_lib(CGGL CgGL Cg/cgGL.h)
+ endif()
+ 
+-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+-	find_library(CL OpenCL)
+-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-weak_framework,OpenCL")
+-else()
++if(UNIX)
++	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") #If OSX
++		find_library(CL OpenCL)
++		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-weak_framework,OpenCL")
++	else() #If Unix-like/Linux
++		option(USE_EXTERNAL_CLRUN "Enables use of an externel CLRun library (CLRUN_INCLUDE_PATH needs to be defined)" OFF)
++		if(USE_EXTERNAL_CLRUN)
++			find_library(CL clrun)
++			include_directories("${CLRUN_INCLUDE_PATH}")
++		else(USE_EXTERNAL_CLRUN)
++			include_directories(Externals/CLRun/include)
++			add_subdirectory(Externals/CLRun)
++		endif(USE_EXTERNAL_CLRUN)
++	endif()
++else() #If Windows
+ 	include_directories(Externals/CLRun/include)
+ 	add_subdirectory(Externals/CLRun)
+ endif()
