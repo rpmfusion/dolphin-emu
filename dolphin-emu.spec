@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -121,6 +121,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-2
+- Fixed date typos in SPEC
+
 * Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-1
 - Updated to latest stable: removed GCC patch, updated CLRun patch
 - Added patch to build on wxwidgets 2.8 (temporary workaround)
@@ -141,7 +144,7 @@ fi
 * Sat Jun 02 2012 Xiao-Long Chen <chenxiaolong@cxl.epac.to> - 3.0-9
 - Add patch to fix build with gcc 4.7.0 in fc17
 
-* Tue Apr 5 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-8
+* Thu Apr 5 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-8
 - Removed bundled CLRun
 
 * Tue Mar 13 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-7
@@ -161,7 +164,7 @@ Lots of clean up and additions, thanks to Xiao-Long Chen:
 - Fixed Licensing
 - Split sources and fixed source grab commands
 
-* Sun Jan 27 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-4
+* Fri Jan 27 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-4
 - Tweaked to now be able to encode frame dumps
 
 * Sun Jan 22 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-3
