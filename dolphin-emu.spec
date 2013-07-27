@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.5
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -60,7 +60,12 @@ present on the original consoles.
 %setup -q -a 1
 %patch0 -p1 -b .clrun
 %patch1 -p1 -b .wx28
+
+#Patch for GCC 4.8
+sed -i 's/_rot/__rot/g' Externals/Bochs_disasm/PowerPCDisasm.cpp Externals/wxWidgets3/include/wx/image.h Externals/wxWidgets3/src/generic/graphicc.cpp Externals/wxWidgets3/src/common/cairo.cpp Externals/wxWidgets3/src/common/image.cpp Externals/wxWidgets3/src/gtk/gnome/gprint.cpp Externals/wxWidgets3/src/gtk/dcclient.cpp Externals/wxWidgets3/src/gtk/print.cpp Source/Core/Core/Src/PowerPC/Jit64/Jit_Integer.cpp Source/Core/Core/Src/PowerPC/Jit64IL/IR.cpp Source/Core/Core/Src/PowerPC/Interpreter/Interpreter_Integer.cpp Source/Core/Core/Src/ARDecrypt.cpp Source/Core/Common/Src/CommonFuncs.h Source/Core/Common/Src/Hash.cpp
+#Various CMAKE fixes
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
+sed -i 's/ AND NOT SFML_VERSION_MAJOR//g' CMakeLists.txt
 
 #Remove all Bundled Libraries except Bochs:
 cd Externals
@@ -121,6 +126,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Fri Jul 26 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-3
+- GCC 4.8 Fix (Fedora 19 and onwards)
+
 * Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-2
 - Fixed date typos in SPEC
 
