@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.5
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -42,7 +42,7 @@ BuildRequires:  wxGTK-devel
 BuildRequires:  zlib-devel
 BuildRequires:  Cg
 BuildRequires:  scons
-BuildRequires:  SFML-devel
+BuildRequires:  compat-SFML16-devel
 BuildRequires:  SOIL-devel
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
@@ -126,6 +126,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Sat Jul 27 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-4
+- Updated for SFML 2.0 update
+
 * Fri Jul 26 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-3
 - GCC 4.8 Fix (Fedora 19 and onwards)
 
