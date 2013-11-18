@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.5
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -19,6 +19,8 @@ Source1:        %{name}-extra.tar.xz
 Patch0:         %{name}-%{version}-clrun.patch
 #Allows for building with wxwidget 2.8.12, rather than 2.9.3
 Patch1:         %{name}-%{version}-wx28.patch
+#Kudos to Hans de Goede (updates paths for compat-SFML16-devel):
+Patch2:         %{name}-%{version}-compat-SFML16.patch
 
 # Dolphin only runs on Intel x86 archictures
 ExclusiveArch:  i686 x86_64
@@ -58,8 +60,9 @@ present on the original consoles.
 
 %prep
 %setup -q -a 1
-%patch0 -p1 -b .clrun
-%patch1 -p1 -b .wx28
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
 
 #Patch for GCC 4.8
 sed -i 's/_rot/__rot/g' Externals/Bochs_disasm/PowerPCDisasm.cpp Externals/wxWidgets3/include/wx/image.h Externals/wxWidgets3/src/generic/graphicc.cpp Externals/wxWidgets3/src/common/cairo.cpp Externals/wxWidgets3/src/common/image.cpp Externals/wxWidgets3/src/gtk/gnome/gprint.cpp Externals/wxWidgets3/src/gtk/dcclient.cpp Externals/wxWidgets3/src/gtk/print.cpp Source/Core/Core/Src/PowerPC/Jit64/Jit_Integer.cpp Source/Core/Core/Src/PowerPC/Jit64IL/IR.cpp Source/Core/Core/Src/PowerPC/Interpreter/Interpreter_Integer.cpp Source/Core/Core/Src/ARDecrypt.cpp Source/Core/Common/Src/CommonFuncs.h Source/Core/Common/Src/Hash.cpp
@@ -126,6 +129,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Nov 18 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-5
+- Added patch for SFML, thanks to Hans de Goede
+
 * Sat Jul 27 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-4
 - Updated for SFML 2.0 update
 
