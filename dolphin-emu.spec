@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        3.5
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://www.dolphin-emulator.com/
@@ -129,6 +129,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Sep 01 2014 Sérgio Basto <sergio@serjux.com> - 3.5-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Mon Nov 18 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-5
 - Added patch for SFML, thanks to Hans de Goede
 
