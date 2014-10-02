@@ -27,35 +27,35 @@ diff -up dolphin-emu-3.5/CMakeTests/FindSFML.cmake~ dolphin-emu-3.5/CMakeTests/F
 diff -up dolphin-emu-3.5/CMakeLists.txt~ dolphin-emu-3.5/CMakeLists.txt
 --- dolphin-emu-3.5/CMakeLists.txt~	2013-11-18 11:58:43.000000000 +0100
 +++ dolphin-emu-3.5/CMakeLists.txt	2013-11-18 12:00:41.120408310 +0100
-@@ -417,6 +417,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Dar
+@@ -581,6 +581,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Dar
  endif()
  if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
-        message("Using shared SFML")
+ 	message("Using shared SFML")
 +       include_directories( /usr/include/sfml1 )
  else()
-        message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
-        add_subdirectory(Externals/SFML)
+ 	message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
+ 	add_subdirectory(Externals/SFML)
 diff -up dolphin-emu-3.5/Source/Core/Core/CMakeLists.txt~ dolphin-emu-3.5/Source/Core/Core/CMakeLists.txt
 --- dolphin-emu-3.5/Source/Core/Core/CMakeLists.txt~	2013-02-20 00:38:35.000000000 +0100
 +++ dolphin-emu-3.5/Source/Core/Core/CMakeLists.txt	2013-11-18 12:14:15.844970552 +0100
-@@ -191,7 +191,7 @@ set(SRCS	Src/ActionReplay.cpp
- 			Src/PowerPC/JitCommon/JitCache.cpp
- 			Src/PowerPC/JitCommon/Jit_Util.cpp)
+@@ -220,7 +220,7 @@ set(SRCS	Src/ActionReplay.cpp
+ 			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
+ endif()
  
--set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
-+set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network-1.6)
+-set(LIBS bdisasm inputcommon videosoftware sfml-network)
++set(LIBS bdisasm inputcommon videosoftware sfml-network-1.6)
  
- if(WIN32)
- 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
+ if(NOT USE_GLES OR USE_GLES3)
+ 	set(LIBS ${LIBS} videoogl)
 diff -up dolphin-emu-3.5/Source/Core/DolphinWX/CMakeLists.txt~ dolphin-emu-3.5/Source/Core/DolphinWX/CMakeLists.txt
 --- dolphin-emu-3.5/Source/Core/DolphinWX/CMakeLists.txt~	2013-02-20 00:38:35.000000000 +0100
 +++ dolphin-emu-3.5/Source/Core/DolphinWX/CMakeLists.txt	2013-11-18 12:14:11.445091807 +0100
-@@ -6,7 +6,7 @@ set(LIBS	core
+@@ -10,7 +10,7 @@ set(LIBS	core
  			common
  			audiocommon
  			z
 -			sfml-network
 +			sfml-network-1.6
- 			${GTK2_LIBRARIES}
- 			${OPENGL_LIBRARIES}
- 			${XRANDR_LIBRARIES}
+ 			${GTK2_LIBRARIES})
+ 
+ if(NOT ANDROID)
