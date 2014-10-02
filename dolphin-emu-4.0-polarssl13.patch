@@ -1,0 +1,249 @@
+diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake
+--- dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake	1979-11-29 23:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake	2014-10-02 10:02:00.688266601 -0400
+@@ -6,14 +6,20 @@
+ #  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
+ #  needed by dolphin-emu
+ 
+-if(POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
+-	# Already in cache, be silent
++# validate cached values (but use them as hints)
++set(POLARSSL_INCLUDE_DIR_HINT POLARSSL_INCLUDE_DIR)
++set(POLARSSL_LIBRARY_HINT POLARSSL_LIBRARY)
++unset(POLARSSL_INCLUDE_DIR CACHE)
++unset(POLARSSL_LIBRARY CACHE)
++find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h HINTS ${POLARSSL_INCLUDE_DIR_HINT})
++find_library(POLARSSL_LIBRARY polarssl HINTS ${POLARSSL_LIBRARY_HINT})
++
++if(POLARSSL_INCLUDE_DIR STREQUAL POLARSSL_INCLUDE_DIR_HINT AND
++   POLARSSL_LIBRARY     STREQUAL POLARSSL_LIBRARY_HINT)
++	# using cached values, be silent
+ 	set(POLARSSL_FIND_QUIETLY TRUE)
+ endif()
+ 
+-find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h)
+-find_library(POLARSSL_LIBRARY polarssl)
+-
+ if (POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
+ 	set (POLARSSL_FOUND TRUE)
+ endif ()
+@@ -24,30 +30,48 @@ if (POLARSSL_FOUND)
+ 		message (STATUS "Found the polarssl headers at ${POLARSSL_INCLUDE_DIR}")
+ 	endif (NOT POLARSSL_FIND_QUIETLY)
+ 
+-	message(STATUS "Checking to see if system version contains necessary methods")
+-
+ 	set(CMAKE_REQUIRED_INCLUDES ${POLARSSL_INCLUDE_DIR})
+ 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
++	unset(POLARSSL_WORKS CACHE)
+ 	check_cxx_source_compiles("
++	#include <polarssl/ctr_drbg.h>
++	#include <polarssl/entropy.h>
+ 	#include <polarssl/net.h>
+ 	#include <polarssl/ssl.h>
+-	#include <polarssl/havege.h>
++	#include <polarssl/version.h>
++
++	#if POLARSSL_VERSION_NUMBER < 0x01030000
++	#error \"Shared PolarSSL version is too old\"
++	#endif
++
+ 	int main()
+ 	{
+-	ssl_context ctx;
+-	ssl_session session;
+-	havege_state hs;
+-
+-	ssl_init(&ctx);
+-	havege_init(&hs);
+-	ssl_set_rng(&ctx, havege_random, &hs);
+-	ssl_set_session(&ctx, &session);
+-
+-	ssl_close_notify(&ctx);
+-	ssl_session_free(&session);
+-	ssl_free(&ctx);
++		ssl_context ctx;
++		ssl_session session;
++		entropy_context entropy;
++		ctr_drbg_context ctr_drbg;
++		x509_crt cacert;
++		x509_crt clicert;
++		pk_context pk;
++
++		ssl_init(&ctx);
++		entropy_init(&entropy);
++
++		const char* pers = \"dolphin-emu\";
++		ctr_drbg_init(&ctr_drbg, entropy_func,
++		                    &entropy,
++		                    (const unsigned char*)pers,
++		                    strlen(pers));
++	
++		ssl_set_rng(&ctx, ctr_drbg_random, &ctr_drbg);
++		ssl_set_session(&ctx, &session);
++
++		ssl_close_notify(&ctx);
++		ssl_session_free(&session);
++		ssl_free(&ctx);
++		entropy_free(&entropy);
+ 
+-	return 0;
++		return 0;
+ 	}"
+ 	POLARSSL_WORKS)
+ 
+@@ -55,5 +79,5 @@ else ()
+ 	message (STATUS "Could not find polarssl")
+ endif ()
+ 
+-MARK_AS_ADVANCED(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
++mark_as_advanced(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
+ 
+diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	1979-11-29 23:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2014-10-02 09:54:33.831914493 -0400
+@@ -28,12 +28,12 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_H
+ 			ssl_session_free(&_SSL[i].session);
+ 			ssl_free(&_SSL[i].ctx);
+ 
+-			x509_free(&_SSL[i].cacert);
+-			x509_free(&_SSL[i].clicert);
++			x509_crt_free(&_SSL[i].cacert);
++			x509_crt_free(&_SSL[i].clicert);
+ 
+ 			memset(&_SSL[i].ctx, 0, sizeof(ssl_context));
+ 			memset(&_SSL[i].session, 0, sizeof(ssl_session));
+-			memset(&_SSL[i].hs, 0, sizeof(havege_state));
++			memset(&_SSL[i].entropy, 0, sizeof(entropy_context));
+ 			memset(_SSL[i].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+ 
+ 			_SSL[i].active = false;
+@@ -147,13 +147,12 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV
+ 				goto _SSL_NEW_ERROR;
+ 			}
+ 
+-			havege_init(&_SSL[sslID].hs);
+-			ssl_set_rng(&_SSL[sslID].ctx, havege_random, &_SSL[sslID].hs);
++			entropy_init(&_SSL[sslID].entropy);
++			ssl_set_rng(&_SSL[sslID].ctx, entropy_func, &_SSL[sslID].hs);
+ 
+ 			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
+ 			ssl_set_max_version(&_SSL[sslID].ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
+ 
+-			ssl_set_ciphersuites(&_SSL[sslID].ctx, ssl_default_ciphersuites);
+ 			ssl_set_session(&_SSL[sslID].ctx, &_SSL[sslID].session);
+ 
+ 			ssl_set_endpoint(&_SSL[sslID].ctx, SSL_IS_CLIENT);
+@@ -192,12 +191,12 @@ _SSL_NEW_ERROR:
+ 			ssl_session_free(&_SSL[sslID].session);
+ 			ssl_free(&_SSL[sslID].ctx);
+ 
+-			x509_free(&_SSL[sslID].cacert);
+-			x509_free(&_SSL[sslID].clicert);
++			x509_crt_free(&_SSL[sslID].cacert);
++			x509_crt_free(&_SSL[sslID].clicert);
+ 
+ 			memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
+ 			memset(&_SSL[sslID].session, 0, sizeof(ssl_session));
+-			memset(&_SSL[sslID].hs, 0, sizeof(havege_state));
++			memset(&_SSL[sslID].entropy, 0, sizeof(entropy_context));
+ 			memset(_SSL[sslID].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+ 
+ 			_SSL[sslID].active = false;
+@@ -231,7 +230,7 @@ _SSL_NEW_ERROR:
+ 		int sslID = Memory::Read_U32(BufferOut) - 1;
+ 		if (SSLID_VALID(sslID))
+ 		{
+-			int ret = x509parse_crt_der(
++			int ret = x509_crt_parse_der(
+ 				&_SSL[sslID].cacert,
+ 				Memory::GetPointer(BufferOut2),
+ 				BufferOutSize2);
+@@ -268,23 +267,23 @@ _SSL_NEW_ERROR:
+ 		if (SSLID_VALID(sslID))
+ 		{
+ 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
+-			int ret = x509parse_crtfile(&_SSL[sslID].clicert, (cert_base_path + "clientca.pem").c_str());
+-			int rsa_ret = x509parse_keyfile(&_SSL[sslID].rsa, (cert_base_path + "clientcakey.pem").c_str(), NULL);
+-			if (ret || rsa_ret)
++			int ret = x509_crt_parse_file(&_SSL[sslID].clicert, (cert_base_path + "clientca.pem").c_str());
++			int pk_ret = pk_parse_keyfile(&_SSL[sslID].pk, (cert_base_path + "clientcakey.pem").c_str(), NULL);
++			if (ret || pk_ret)
+ 			{
+-				x509_free(&_SSL[sslID].clicert);
+-				rsa_free(&_SSL[sslID].rsa);
+-				memset(&_SSL[sslID].clicert, 0, sizeof(x509_cert));
+-				memset(&_SSL[sslID].rsa, 0, sizeof(rsa_context));
++				x509_crt_free(&_SSL[sslID].clicert);
++				pk_free(&_SSL[sslID].pk);
++				memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
++				memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
+ 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+ 			}
+ 			else
+ 			{
+-				ssl_set_own_cert(&_SSL[sslID].ctx, &_SSL[sslID].clicert, &_SSL[sslID].rsa);
++				ssl_set_own_cert(&_SSL[sslID].ctx, &_SSL[sslID].clicert, &_SSL[sslID].pk);
+ 				Memory::Write_U32(SSL_OK, _BufferIn);
+ 			}
+ 
+-			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, rsa_ret);
++			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
+ 		}
+ 		else
+ 		{
+@@ -306,10 +305,10 @@ _SSL_NEW_ERROR:
+ 		int sslID = Memory::Read_U32(BufferOut) - 1;
+ 		if (SSLID_VALID(sslID))
+ 		{
+-			x509_free(&_SSL[sslID].clicert);
+-			rsa_free(&_SSL[sslID].rsa);
+-			memset(&_SSL[sslID].clicert, 0, sizeof(x509_cert));
+-			memset(&_SSL[sslID].rsa, 0, sizeof(rsa_context));
++			x509_crt_free(&_SSL[sslID].clicert);
++			pk_free(&_SSL[sslID].pk);
++			memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
++			memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
+ 
+ 			ssl_set_own_cert(&_SSL[sslID].ctx, NULL, NULL);
+ 			Memory::Write_U32(SSL_OK, _BufferIn);
+@@ -328,10 +327,10 @@ _SSL_NEW_ERROR:
+ 		{
+ 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
+ 
+-			int ret = x509parse_crtfile(&_SSL[sslID].cacert, (cert_base_path + "rootca.pem").c_str());
++			int ret = x509_crt_parse_file(&_SSL[sslID].cacert, (cert_base_path + "rootca.pem").c_str());
+ 			if (ret)
+ 			{
+-				x509_free(&_SSL[sslID].clicert);
++				x509_crt_free(&_SSL[sslID].clicert);
+ 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+ 			}
+ 			else
+diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	1979-11-29 23:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2014-10-02 09:55:32.057502719 -0400
+@@ -9,7 +9,7 @@
+ 
+ #include <polarssl/net.h>
+ #include <polarssl/ssl.h>
+-#include <polarssl/havege.h>
++#include <polarssl/entropy.h>
+ 
+ #define NET_SSL_MAX_HOSTNAME_LEN 256
+ #define NET_SSL_MAXINSTANCES 4
+@@ -57,10 +57,10 @@ enum SSL_IOCTL
+ typedef struct {
+ 	ssl_context ctx;
+ 	ssl_session session;
+-	havege_state hs;
+-	x509_cert cacert;
+-	x509_cert clicert;
+-	rsa_context rsa;
++	entropy_context entropy;
++	x509_crt cacert;
++	x509_crt clicert;
++	pk_context pk;
+ 	int sockfd;
+ 	char hostname[NET_SSL_MAX_HOSTNAME_LEN];
+ 	bool active;
