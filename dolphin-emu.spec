@@ -1,27 +1,20 @@
 Name:           dolphin-emu
-Version:        3.5
-Release:        4%{?dist}
+Version:        4.0
+Release:        2%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
-Url:            http://www.dolphin-emulator.com/
-#A license breakdown is included in copyright from Source1
-License:        GPLv2 and BSD and OpenSSL and Public Domain
-##Source can be grabbed using the script in Source1:
-#get-source-from-git.sh
-Source0:        %{name}-%{version}.tar.xz
-#Source1 just contains various missing files from the source
-#Most of it can be grabbed here:
-#https://github.com/chenxiaolong/Fedora-SRPMS/tree/master/dolphin-emu
-#The copyright file is from here:
-#http://ppa.launchpad.net/glennric/dolphin-emu/ubuntu/pool/main/d/dolphin-emu/dolphin-emu_3.0-0ubuntu2~lucid.debian.tar.gz
-Source1:        %{name}-extra.tar.xz
+Url:            http://dolphin-emu.org/
+License:        GPLv2 and BSD and Public Domain
+#Download here: https://dolphin-emu.googlecode.com/archive/4.0.2.zip
+Source0:        %{name}-2879cbd2b564.zip
+#Manpage from Ubuntu package
+Source1:        %{name}.1
 #Kudos to Richard on this one (allows for shared clrun lib):
 Patch0:         %{name}-%{version}-clrun.patch
-#Allows for building with wxwidget 2.8.12, rather than 2.9.3
-Patch1:         %{name}-%{version}-wx28.patch
-
-# Dolphin only runs on Intel x86 archictures
-ExclusiveArch:  i686 x86_64
+#Kudos to Hans de Goede (updates paths for compat-SFML16-devel):
+Patch1:         %{name}-%{version}-compat-SFML16.patch
+#GTK3 patch, bug: https://code.google.com/p/dolphin-emu/issues/detail?id=7069
+Patch2:         %{name}-%{version}-gtk3.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
@@ -37,8 +30,9 @@ BuildRequires:  mesa-libGLU-devel
 BuildRequires:  openal-soft-devel
 BuildRequires:  pulseaudio-libs-devel
 BuildRequires:  portaudio-devel
-BuildRequires:  SDL-devel
-BuildRequires:  wxGTK-devel
+BuildRequires:  SDL2-devel
+BuildRequires:  wxGTK3-devel
+BuildRequires:  gtk3-devel
 BuildRequires:  zlib-devel
 BuildRequires:  Cg
 BuildRequires:  scons
@@ -48,6 +42,15 @@ BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
 BuildRequires:  bochs-devel
 BuildRequires:  opencl-utils-devel
+BuildRequires:  soundtouch-devel
+#BuildRequires:  polarssl-devel
+BuildRequires:  miniupnpc-devel
+BuildRequires:  libusb-devel
+
+#Bug in fedora, not an issue for polarssl 1.3 in F21:
+#https://bugzilla.redhat.com/show_bug.cgi?id=1069394
+Provides: bundled(polarssl) = 1.2.8
+
 Requires:       hicolor-icon-theme
 
 %description
@@ -57,19 +60,20 @@ Gamecube) emulator which supports many extra features and abilities not
 present on the original consoles.
 
 %prep
-%setup -q -a 1
-%patch0 -p1 -b .clrun
-%patch1 -p1 -b .wx28
+%setup -q -n %{name}-2879cbd2b564
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
 
-#Patch for GCC 4.8
-sed -i 's/_rot/__rot/g' Externals/Bochs_disasm/PowerPCDisasm.cpp Externals/wxWidgets3/include/wx/image.h Externals/wxWidgets3/src/generic/graphicc.cpp Externals/wxWidgets3/src/common/cairo.cpp Externals/wxWidgets3/src/common/image.cpp Externals/wxWidgets3/src/gtk/gnome/gprint.cpp Externals/wxWidgets3/src/gtk/dcclient.cpp Externals/wxWidgets3/src/gtk/print.cpp Source/Core/Core/Src/PowerPC/Jit64/Jit_Integer.cpp Source/Core/Core/Src/PowerPC/Jit64IL/IR.cpp Source/Core/Core/Src/PowerPC/Interpreter/Interpreter_Integer.cpp Source/Core/Core/Src/ARDecrypt.cpp Source/Core/Common/Src/CommonFuncs.h Source/Core/Common/Src/Hash.cpp
-#Various CMAKE fixes
+###CMAKE fixes
+#Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
-sed -i 's/ AND NOT SFML_VERSION_MAJOR//g' CMakeLists.txt
+#This is a typo: https://code.google.com/p/dolphin-emu/issues/detail?id=7074
+sed -i 's/soundtouch.h/SoundTouch.h/g' CMakeLists.txt
 
-#Remove all Bundled Libraries except Bochs:
+###Remove all Bundled Libraries except Bochs and polarssl:
 cd Externals
-rm -f -r `ls | grep -v 'Bochs_disasm'`
+rm -f -r `ls | grep -v 'Bochs_disasm' | grep -v 'polarssl'`
 #Remove Bundled Bochs source and replace with links:
 cd Bochs_disasm
 rm -f -r `ls | grep -v 'PowerPC*' | grep -v 'CMakeLists.txt'`
@@ -81,37 +85,37 @@ ln -s /usr/include/bochs/disasm/*.inc ./
 ln -s /usr/include/bochs/disasm/*.h ./
 
 %build
-%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+%cmake \
+       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
        -DBUILD_SHARED_LIBS=FALSE \
        -DENCODE_FRAMEDUMPS=FALSE \
        -DUSE_EXTERNAL_CLRUN=TRUE \
        -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
+       -DwxWidgets_CONFIG_EXECUTABLE=%{_bindir}/wx-config-3.0 \
        .
+
 make %{?_smp_mflags}
 
 %install
 make %{?_smp_mflags} install DESTDIR=%{buildroot}
 
-#Install extras from source1:
-for size in 16 32 48 128 256; do
-    dim="${size}x${size}"
-    install -p -D -m 0644 %{name}-extra/%{name}$size.png \
-    %{buildroot}%{_datadir}/icons/hicolor/$dim/apps/%{name}.png
-done
-desktop-file-install --dir %{buildroot}%{_datadir}/applications \
-    %{name}-extra/%{name}.desktop
-install -p -D -m 0644  %{name}-extra/%{name}.1 \
+desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
+
+#Install manpage:
+install -p -D -m 0644 %{SOURCE1} \
     %{buildroot}/%{_mandir}/man1/%{name}.1
+
 %find_lang %{name}
 
 %files -f %{name}.lang
-%doc license.txt Readme.txt docs/ActionReplay/CodeTypesGuide.txt
-%doc docs/ActionReplay/GCNCodeTypes.txt %{name}-extra/copyright
+%doc license.txt Readme.txt docs/*
+%doc docs/ActionReplay/GCNCodeTypes.txt
 %{_datadir}/%{name}
 %{_bindir}/%{name}
-%{_datadir}/icons/hicolor/*/apps/%{name}.png
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man1/%{name}.*
+%{_datadir}/pixmaps/%{name}.xpm
+%{_libdir}/*.a
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
@@ -126,11 +130,26 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-2
+- Bundle polarssl (temporary fix, only for F19/20)
+
+* Mon Mar 3 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-1
+- Update to dolphin 4.0.2
+- Removed any unnecessary patches
+- Added new and updated some old patches
+- Removed exclusive arch, now builds on arm
+
+* Wed Jan 1 2014 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-6
+- Build for SDL2 (Adds vibration support)
+
+* Mon Nov 18 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-5
+- Added patch for SFML, thanks to Hans de Goede
+
 * Sat Jul 27 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-4
-- Updated for SFML 2.0 update
+- Updated for SFML compat
 
 * Fri Jul 26 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-3
-- GCC 4.8 Fix (Fedora 19 and onwards)
+-3 GCC 4.8 Fix (Fedora 19 and onwards)
 
 * Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-2
 - Fixed date typos in SPEC
