@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -93,7 +93,6 @@ ln -s /usr/include/bochs/disasm/*.h ./
        -DENCODE_FRAMEDUMPS=FALSE \
        -DUSE_EXTERNAL_CLRUN=TRUE \
        -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
-       -DwxWidgets_CONFIG_EXECUTABLE=%{_bindir}/wx-config-3.0 \
        .
 
 make %{?_smp_mflags}
@@ -132,6 +131,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Oct 27 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-4
+- Change in wxGTK3-devel file
+
 * Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-3
 - Use polarssl 1.3 (fedora 21+) to avoid bundling
 - patch to use entropy functionality in SSL instead of havege
