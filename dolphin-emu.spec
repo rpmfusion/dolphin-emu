@@ -39,7 +39,6 @@ BuildRequires:  SDL2-devel
 BuildRequires:  wxGTK3-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  zlib-devel
-BuildRequires:  Cg
 BuildRequires:  scons
 BuildRequires:  compat-SFML16-devel
 BuildRequires:  SOIL-devel
@@ -133,6 +132,7 @@ fi
 %changelog
 * Mon Oct 27 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-4
 - Change in wxGTK3-devel file
+- Remove unnecessary CG requirement
 
 * Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-3
 - Use polarssl 1.3 (fedora 21+) to avoid bundling
