@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -34,7 +34,6 @@ BuildRequires:  SDL2-devel
 BuildRequires:  wxGTK3-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  zlib-devel
-BuildRequires:  Cg
 BuildRequires:  scons
 BuildRequires:  compat-SFML16-devel
 BuildRequires:  SOIL-devel
@@ -130,6 +129,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-3
+- Remove CG (no longer required for 4.0
+
 * Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-2
 - Bundle polarssl (temporary fix, only for F19/20)
 
