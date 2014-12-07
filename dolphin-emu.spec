@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -131,6 +131,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Sat Dec 6 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-5
+- Line got deleted by accident, build fails
+
 * Mon Oct 27 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-4
 - Change in wxGTK3-devel file
 - Remove unnecessary CG requirement
