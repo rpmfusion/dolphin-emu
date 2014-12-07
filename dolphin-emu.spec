@@ -92,6 +92,7 @@ ln -s /usr/include/bochs/disasm/*.h ./
        -DENCODE_FRAMEDUMPS=FALSE \
        -DUSE_EXTERNAL_CLRUN=TRUE \
        -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
+       -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
        .
 
 make %{?_smp_mflags}
