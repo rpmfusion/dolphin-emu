@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -20,6 +20,9 @@ Patch2:         %{name}-%{version}-gtk3.patch
 #Also see rpmfusion bug for details:
 #https://bugzilla.rpmfusion.org/show_bug.cgi?id=2995
 Patch3:         %{name}-%{version}-polarssl13.patch
+#GCC 4.9, mostly fixed upstream, see bug for an include issue:
+#
+Patch4:         %{name}-%{version}-gcc49.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
@@ -65,6 +68,7 @@ present on the original consoles.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 ###CMAKE fixes
 #Allow building with cmake macro
@@ -116,7 +120,6 @@ install -p -D -m 0644 %{SOURCE1} \
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man1/%{name}.*
 %{_datadir}/pixmaps/%{name}.xpm
-%{_libdir}/*.a
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
@@ -131,6 +134,10 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Tue Dec 9 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-6
+- Patching for GCC 4.9
+- GTK patch fixing
+
 * Sat Dec 6 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-5
 - Line got deleted by accident, build fails
 

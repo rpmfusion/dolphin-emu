@@ -1,0 +1,36 @@
+diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Common/Src/CommonFuncs.h dolphin-emu-2879cbd2b564/Source/Core/Common/Src/CommonFuncs.h
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/Common/Src/CommonFuncs.h	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/Common/Src/CommonFuncs.h	2014-12-09 13:18:36.165423334 -0500
+@@ -30,7 +30,12 @@ struct ArraySizeImpl : public std::exten
+ #define b32(x)  (b16(x) | (b16(x) >>16) )
+ #define ROUND_UP_POW2(x)	(b32(x - 1) + 1)
+ 
+-#if defined __GNUC__ && !defined __SSSE3__ && !defined _M_GENERIC
++#ifndef __GNUC_PREREQ
++	#define __GNUC_PREREQ(a, b) 0
++#endif
++
++#if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
++	!defined __SSSE3__ && defined _M_X86
+ #include <emmintrin.h>
+ static __inline __m128i __attribute__((__always_inline__))
+ _mm_shuffle_epi8(__m128i a, __m128i mask)
+diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/VideoCommon/Src/x64TextureDecoder.cpp dolphin-emu-2879cbd2b564/Source/Core/VideoCommon/Src/x64TextureDecoder.cpp
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/VideoCommon/Src/x64TextureDecoder.cpp	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/VideoCommon/Src/x64TextureDecoder.cpp	2014-12-09 13:33:25.042255692 -0500
+@@ -23,11 +23,14 @@
+ 
+ #if _M_SSE >= 0x401
+ #include <smmintrin.h>
+-#include <emmintrin.h>
+ #elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+ #include <tmmintrin.h>
+ #endif
+ 
++#ifdef __SSE2__
++#include <emmintrin.h>
++#endif
++
+ // This avoids a harmless warning from a system header in Clang;
+ // see http://llvm.org/bugs/show_bug.cgi?id=16093
+ #ifdef __clang__

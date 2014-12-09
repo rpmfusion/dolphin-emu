@@ -1,24 +1,34 @@
 diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeLists.txt dolphin-emu-2879cbd2b564/CMakeLists.txt
---- dolphin-emu-2879cbd2b564-orig/CMakeLists.txt	2014-03-07 20:10:55.185158971 -0500
-+++ dolphin-emu-2879cbd2b564/CMakeLists.txt	2014-03-07 20:16:00.388691555 -0500
-@@ -707,13 +707,11 @@ if(NOT DISABLE_WX AND NOT ANDROID)
+--- dolphin-emu-2879cbd2b564-orig/CMakeLists.txt	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/CMakeLists.txt	2014-12-09 15:27:57.364864541 -0500
+@@ -696,24 +696,12 @@ if(NOT DISABLE_WX AND NOT ANDROID)
+ 	endif(wxWidgets_FOUND)
+ 
+ 	if(UNIX AND NOT APPLE)
+-		# There is a bug in the FindGTK module in cmake version 2.8.2 that
+-		# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
+-		# users have complained that pkg-config does not find
+-		# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
+-		# Ubuntu Natty does not find the glib libraries correctly.
+-		# Ugly!!!
+ 		execute_process(COMMAND lsb_release -c -s
  			OUTPUT_VARIABLE DIST_NAME
  			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
- 		if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
+-		if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
 -				VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
 -			check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
-+				VERSION_EQUAL 2.8.12 OR "${DIST_NAME}" STREQUAL "natty")
-+			check_lib(GTK3 gtk+-3.0 gtk.h REQUIRED)
- 		else()
+-		else()
 -			include(FindGTK2)
 -			if(GTK2_FOUND)
 -				include_directories(${GTK2_INCLUDE_DIRS})
 -			endif()
-+			include(FindGTK)
+-		endif()
++		
++			check_lib(GTK3 gtk+-3.0 gtk.h REQUIRED)
 +			include_directories(${GTK3_INCLUDE_DIRS})
- 		endif()
  	endif()
  
+ 	if(wxWidgets_FOUND)
 diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/DolphinWX/CMakeLists.txt dolphin-emu-2879cbd2b564/Source/Core/DolphinWX/CMakeLists.txt
 --- dolphin-emu-2879cbd2b564-orig/Source/Core/DolphinWX/CMakeLists.txt	2014-03-07 20:10:55.186158963 -0500
 +++ dolphin-emu-2879cbd2b564/Source/Core/DolphinWX/CMakeLists.txt	2014-03-07 20:18:55.977272101 -0500

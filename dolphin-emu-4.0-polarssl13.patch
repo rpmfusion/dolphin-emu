@@ -1,6 +1,6 @@
 diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake
---- dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake	1979-11-29 23:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake	2014-10-02 10:02:00.688266601 -0400
+--- dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake	2014-12-09 13:15:25.488951757 -0500
 @@ -6,14 +6,20 @@
  #  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
  #  needed by dolphin-emu
@@ -100,8 +100,8 @@ diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake dolphin-e
 +mark_as_advanced(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
  
 diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
---- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	1979-11-29 23:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2014-10-02 09:54:33.831914493 -0400
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2014-12-09 13:16:30.203433018 -0500
 @@ -28,12 +28,12 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_H
  			ssl_session_free(&_SSL[i].session);
  			ssl_free(&_SSL[i].ctx);
@@ -125,7 +125,7 @@ diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HL
 -			havege_init(&_SSL[sslID].hs);
 -			ssl_set_rng(&_SSL[sslID].ctx, havege_random, &_SSL[sslID].hs);
 +			entropy_init(&_SSL[sslID].entropy);
-+			ssl_set_rng(&_SSL[sslID].ctx, entropy_func, &_SSL[sslID].hs);
++			ssl_set_rng(&_SSL[sslID].ctx, entropy_func, &_SSL[sslID].entropy);
  
  			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
  			ssl_set_max_version(&_SSL[sslID].ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
@@ -221,8 +221,8 @@ diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HL
  			}
  			else
 diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
---- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	1979-11-29 23:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2014-10-02 09:55:32.057502719 -0400
+--- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	1979-11-30 00:00:00.000000000 -0500
++++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2014-12-09 13:15:25.489951749 -0500
 @@ -9,7 +9,7 @@
  
  #include <polarssl/net.h>
