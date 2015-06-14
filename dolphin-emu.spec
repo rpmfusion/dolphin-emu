@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -50,7 +50,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  bochs-devel
 BuildRequires:  opencl-utils-devel
 BuildRequires:  soundtouch-devel
-BuildRequires:  polarssl-devel >= 1.3.0
+BuildRequires:  mbedtls-devel >= 1.3.0
 BuildRequires:  miniupnpc-devel
 BuildRequires:  libusb-devel
 
@@ -75,6 +75,8 @@ present on the original consoles.
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 #This is a typo: https://code.google.com/p/dolphin-emu/issues/detail?id=7074
 sed -i 's/soundtouch.h/SoundTouch.h/g' CMakeLists.txt
+#Change in library name from polarssl to mbedtls
+sed -i 's/polarssl H/mbedtls H/g' CMakeTests/FindPolarSSL.cmake
 
 ###Remove all Bundled Libraries except Bochs:
 cd Externals
@@ -95,6 +97,7 @@ ln -s /usr/include/bochs/disasm/*.h ./
        -DBUILD_SHARED_LIBS=FALSE \
        -DENCODE_FRAMEDUMPS=FALSE \
        -DUSE_EXTERNAL_CLRUN=TRUE \
+       -DUSE_SHARED_GTK3=TRUE \
        -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
        -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
        .
@@ -134,9 +137,11 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Sun Jun 14 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-7
+- Patching for the rename of polarssl
+
 * Tue Dec 9 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-6
 - Patching for GCC 4.9
-- GTK patch fixing
 
 * Sat Dec 6 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-5
 - Line got deleted by accident, build fails
