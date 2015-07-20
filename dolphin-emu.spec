@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
@@ -140,6 +140,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Jul 20 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-8
+- Disabling polarssl, as its not working on buildsys
+
 * Sun Jun 14 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-7
 - Patching for the rename of polarssl
 
