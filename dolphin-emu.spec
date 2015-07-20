@@ -78,7 +78,8 @@ sed -i 's/soundtouch.h/SoundTouch.h/g' CMakeLists.txt
 #Change in library name from polarssl to mbedtls
 sed -i 's/polarssl H/mbedtls H/g' CMakeTests/FindPolarSSL.cmake
 #Remove check for POLARSSL_WORKS as it doesn't seem to work
-sed -i 's/ AND POLARSSL_WORKS//g' CMakeLists.txt
+sed -i 's/unset(POLARSSL_WORKS CACHE)/set(POLARSSL_WORKS TRUE)/g' CMakeTests/FindPolarSSL.cmake
+sed -i 's/POLARSSL_WORKS)/POLARSSL_DONTCARE)/g' CMakeTests/FindPolarSSL.cmake
 
 ###Remove all Bundled Libraries except Bochs:
 cd Externals
