@@ -138,68 +138,68 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
-* Thu Nov 12 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-9
+* Thu Nov 12 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-9
 - Patch for X11 for f22+
-- Patch for mbedtls
+- Patch for mbedtls (used to be polarssl, fixes check)
 - Changed the source download link (migrated to github)
 
-* Mon Jul 20 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-8
-- Disabling polarssl, as its not working on buildsys
+* Mon Jul 20 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-8
+- Disabling polarssl check, as its not working on buildsys
 
-* Sun Jun 14 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-7
+* Sun Jun 14 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-7
 - Patching for the rename of polarssl
 
-* Tue Dec 9 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-6
+* Tue Dec 9 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-6
 - Patching for GCC 4.9
 
-* Sat Dec 6 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-5
+* Sat Dec 6 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-5
 - Line got deleted by accident, build fails
 
-* Mon Oct 27 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-4
+* Mon Oct 27 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-4
 - Change in wxGTK3-devel file
 - Remove unnecessary CG requirement
 
-* Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-3
+* Thu Oct 2 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-3
 - Use polarssl 1.3 (fedora 21+) to avoid bundling
 - patch to use entropy functionality in SSL instead of havege
 
-* Thu Oct 2 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-2
+* Thu Oct 2 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-2
 - Bundle polarssl (temporary fix, only for F19/20)
 
-* Mon Mar 3 2014 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-1
+* Mon Mar 3 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-1
 - Update to dolphin 4.0.2
 - Removed any unnecessary patches
 - Added new and updated some old patches
 - Removed exclusive arch, now builds on arm
 
-* Wed Jan 1 2014 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-6
+* Wed Jan 1 2014 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-6
 - Build for SDL2 (Adds vibration support)
 
-* Mon Nov 18 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-5
+* Mon Nov 18 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-5
 - Added patch for SFML, thanks to Hans de Goede
 
-* Sat Jul 27 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-4
+* Sat Jul 27 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-4
 - Updated for SFML compat
 
-* Fri Jul 26 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-3
+* Fri Jul 26 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-3
 -3 GCC 4.8 Fix (Fedora 19 and onwards)
 
-* Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-2
+* Tue Feb 19 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-2
 - Fixed date typos in SPEC
 
-* Tue Feb 19 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.5-1
+* Tue Feb 19 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.5-1
 - Updated to latest stable: removed GCC patch, updated CLRun patch
 - Added patch to build on wxwidgets 2.8 (temporary workaround)
 
-* Sat Feb 16 2013 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-12
+* Sat Feb 16 2013 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-12
 - Removed patch for libav and disabled ffmpeg, caused rendering issues
 - Minor consistency fixes to SPEC file
 
-* Fri Dec 14 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-11
+* Fri Dec 14 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-11
 - Added patch for recent libav api change in fc18, credit to Xiao-Long Chen
 - Renamed patch 1 for consistency
 
-* Mon Jun 25 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-10
+* Mon Jun 25 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-10
 - Changed CLRun buildrequire package name
 - Renamed GCC 4.7 patch to suit fedora standards
 - Added missing hicolor-icon-theme require
@@ -207,14 +207,14 @@ fi
 * Sat Jun 02 2012 Xiao-Long Chen <chenxiaolong@cxl.epac.to> - 3.0-9
 - Add patch to fix build with gcc 4.7.0 in fc17
 
-* Thu Apr 5 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-8
+* Thu Apr 5 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-8
 - Removed bundled CLRun
 
-* Tue Mar 13 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-7
+* Tue Mar 13 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-7
 - Removed bundled bochs
 - Fixed get-source-from-git.sh: missing checkout 3.0
 
-* Fri Feb 24 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-6
+* Fri Feb 24 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-6
 - Removed purposeless zerolength file
 Lots of clean up and additions, thanks to Xiao-Long Chen:
 - Added man page
@@ -223,25 +223,25 @@ Lots of clean up and additions, thanks to Xiao-Long Chen:
 - Added ExclusiveArch
 - Added Some missing dependencies
 
-* Thu Feb 23 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-5
+* Thu Feb 23 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-5
 - Fixed Licensing
 - Split sources and fixed source grab commands
 
-* Fri Jan 27 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-4
+* Fri Jan 27 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-4
 - Tweaked to now be able to encode frame dumps
 
-* Sun Jan 22 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-3
+* Sun Jan 22 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-3
 - Building now uses cmake macro
 - Turned off building shared libs
 - Removed unnecessary lines
 - Fixed debuginfo-without-sources issue
 - Reorganization of the SPEC for readability
 
-* Thu Jan 12 2012 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-2
+* Thu Jan 12 2012 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-2
 - Fixed up spec to Fedora Guidelines
 - Fixed various trivial mistakes
 - Added SOIL and SFML to dependancies
 - Removed bundled SOIL and SFML from source spin
 
-* Sun Dec 18 2011 Jeremy Newton <alexjnewt@hotmail.com> - 3.0-1
+* Sun Dec 18 2011 Jeremy Newton <alexjnewt at hotmail dot com> - 3.0-1
 - Initial package SPEC created
