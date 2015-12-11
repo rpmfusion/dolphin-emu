@@ -1,6 +1,6 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        9%{?dist}
+Release:        10%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
