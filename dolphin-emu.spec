@@ -138,6 +138,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Nov 12 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-10
+- Patch for mbedtls updated for 2.0+ (f23+)
+
 * Thu Nov 12 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-9
 - Patch for X11 for f22+
 - Patch for mbedtls (used to be polarssl, fixes check)

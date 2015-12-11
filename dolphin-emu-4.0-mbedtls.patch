@@ -19,9 +19,9 @@ diff -rupN dolphin-4.0-hotfixes-orig/CMakeLists.txt dolphin-4.0-hotfixes/CMakeLi
  	set(POLARSSL_LIBRARY polarssl)
 diff -rupN dolphin-4.0-hotfixes-orig/CMakeTests/FindMbedTLS.cmake dolphin-4.0-hotfixes/CMakeTests/FindMbedTLS.cmake
 --- dolphin-4.0-hotfixes-orig/CMakeTests/FindMbedTLS.cmake	1969-12-31 19:00:00.000000000 -0500
-+++ dolphin-4.0-hotfixes/CMakeTests/FindMbedTLS.cmake	2015-11-12 22:39:41.210636652 -0500
++++ dolphin-4.0-hotfixes/CMakeTests/FindMbedTLS.cmake	2015-11-12 22:58:59.883533081 -0500
 @@ -0,0 +1,19 @@
-+find_path(MBEDTLS_INCLUDE_DIR polarssl/ssl.h)
++find_path(MBEDTLS_INCLUDE_DIR mbedtls/ssl.h)
 +
 +find_library(MBEDTLS_LIBRARY mbedtls)
 +
@@ -30,7 +30,7 @@ diff -rupN dolphin-4.0-hotfixes-orig/CMakeTests/FindMbedTLS.cmake dolphin-4.0-ho
 +
 +set(CMAKE_REQUIRED_INCLUDES ${MBEDTLS_INCLUDE_DIRS})
 +check_cxx_source_compiles("
-+	#include <polarssl/version.h>
++	#include <mbedtls/version.h>
 +	int main() {}"
 +	MBEDTLS_VERSION_OK)
 +
@@ -103,6 +103,18 @@ diff -rupN dolphin-4.0-hotfixes-orig/CMakeTests/FindPolarSSL.cmake dolphin-4.0-h
 -
 -MARK_AS_ADVANCED(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
 -
+diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Common/Src/Crypto/tools.h dolphin-4.0-hotfixes/Source/Core/Common/Src/Crypto/tools.h
+--- dolphin-4.0-hotfixes-orig/Source/Core/Common/Src/Crypto/tools.h	2013-11-29 16:05:19.000000000 -0500
++++ dolphin-4.0-hotfixes/Source/Core/Common/Src/Crypto/tools.h	2015-11-12 23:12:26.897015314 -0500
+@@ -4,7 +4,7 @@
+ 
+ #ifndef _TOOLS_H
+ #define _TOOLS_H
+-#include <polarssl/sha1.h>
++#include <mbedtls/sha1.h>
+ 
+ // bignum
+ int bn_compare(u8 *a, u8 *b, u32 n);
 diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/CMakeLists.txt dolphin-4.0-hotfixes/Source/Core/Core/CMakeLists.txt
 --- dolphin-4.0-hotfixes-orig/Source/Core/Core/CMakeLists.txt	2015-11-12 22:05:49.907168216 -0500
 +++ dolphin-4.0-hotfixes/Source/Core/Core/CMakeLists.txt	2015-11-12 22:05:26.603282630 -0500
@@ -238,13 +250,17 @@ diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_De
  			else
 diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
 --- dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2013-11-29 16:05:19.000000000 -0500
-+++ dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-11-12 21:50:16.952626105 -0500
-@@ -9,7 +9,7 @@
++++ dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-11-12 23:08:40.348002839 -0500
+@@ -7,9 +7,9 @@
  
- #include <polarssl/net.h>
- #include <polarssl/ssl.h>
+ #include "WII_IPC_HLE_Device.h"
+ 
+-#include <polarssl/net.h>
+-#include <polarssl/ssl.h>
 -#include <polarssl/havege.h>
-+#include <polarssl/entropy.h>
++#include <mbedtls/net.h>
++#include <mbedtls/ssl.h>
++#include <mbedtls/entropy.h>
  
  #define NET_SSL_MAX_HOSTNAME_LEN 256
  #define NET_SSL_MAXINSTANCES 4
