@@ -1,11 +1,11 @@
 Name:           dolphin-emu
 Version:        4.0
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
-#Download here: https://dolphin-emu.googlecode.com/archive/4.0.2.zip
+#Download here: https://github.com/dolphin-emu/dolphin/archive/4.0-hotfixes.zip
 Source0:        %{name}-2879cbd2b564.zip
 #Manpage from Ubuntu package
 Source1:        %{name}.1
@@ -15,14 +15,16 @@ Patch0:         %{name}-%{version}-clrun.patch
 Patch1:         %{name}-%{version}-compat-SFML16.patch
 #GTK3 patch, bug: https://code.google.com/p/dolphin-emu/issues/detail?id=7069
 Patch2:         %{name}-%{version}-gtk3.patch
-#Use polarssl 1.3, workaround for fedora bug:
+#Use mbedtls, backported from upstream, see fedora bug:
 #https://bugzilla.redhat.com/show_bug.cgi?id=1069394
 #Also see rpmfusion bug for details:
 #https://bugzilla.rpmfusion.org/show_bug.cgi?id=2995
-Patch3:         %{name}-%{version}-polarssl13.patch
-#GCC 4.9, mostly fixed upstream, see bug for an include issue:
-#
+Patch3:         %{name}-%{version}-mbedtls.patch
+#GCC 4.9+, mostly fixed upstream:
 Patch4:         %{name}-%{version}-gcc49.patch
+#Fixes X11 build failure, from arch linux:
+#https://www.archlinux.org/packages/community/x86_64/dolphin-emu/
+Patch5:         %{name}-%{version}-findx11.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
@@ -69,17 +71,13 @@ present on the original consoles.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 ###CMAKE fixes
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 #This is a typo: https://code.google.com/p/dolphin-emu/issues/detail?id=7074
 sed -i 's/soundtouch.h/SoundTouch.h/g' CMakeLists.txt
-#Change in library name from polarssl to mbedtls
-sed -i 's/polarssl H/mbedtls H/g' CMakeTests/FindPolarSSL.cmake
-#Remove check for POLARSSL_WORKS as it doesn't seem to work
-sed -i 's/unset(POLARSSL_WORKS CACHE)/set(POLARSSL_WORKS TRUE)/g' CMakeTests/FindPolarSSL.cmake
-sed -i 's/POLARSSL_WORKS)/POLARSSL_DONTCARE)/g' CMakeTests/FindPolarSSL.cmake
 
 ###Remove all Bundled Libraries except Bochs:
 cd Externals
@@ -140,6 +138,11 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Nov 12 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-9
+- Patch for X11 for f22+
+- Patch for mbedtls
+- Changed the source download link (migrated to github)
+
 * Mon Jul 20 2015 Jeremy Newton <alexjnewt@hotmail.com> - 4.0-8
 - Disabling polarssl, as its not working on buildsys
 
