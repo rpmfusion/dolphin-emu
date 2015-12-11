@@ -1,55 +1,85 @@
-diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake
---- dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake	1979-11-30 00:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/CMakeTests/FindPolarSSL.cmake	2014-12-09 13:15:25.488951757 -0500
-@@ -6,14 +6,20 @@
- #  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
- #  needed by dolphin-emu
- 
--if(POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
--	# Already in cache, be silent
-+# validate cached values (but use them as hints)
-+set(POLARSSL_INCLUDE_DIR_HINT POLARSSL_INCLUDE_DIR)
-+set(POLARSSL_LIBRARY_HINT POLARSSL_LIBRARY)
-+unset(POLARSSL_INCLUDE_DIR CACHE)
-+unset(POLARSSL_LIBRARY CACHE)
-+find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h HINTS ${POLARSSL_INCLUDE_DIR_HINT})
-+find_library(POLARSSL_LIBRARY polarssl HINTS ${POLARSSL_LIBRARY_HINT})
-+
-+if(POLARSSL_INCLUDE_DIR STREQUAL POLARSSL_INCLUDE_DIR_HINT AND
-+   POLARSSL_LIBRARY     STREQUAL POLARSSL_LIBRARY_HINT)
-+	# using cached values, be silent
- 	set(POLARSSL_FIND_QUIETLY TRUE)
+diff -rupN dolphin-4.0-hotfixes-orig/CMakeLists.txt dolphin-4.0-hotfixes/CMakeLists.txt
+--- dolphin-4.0-hotfixes-orig/CMakeLists.txt	2015-11-12 22:05:49.906168221 -0500
++++ dolphin-4.0-hotfixes/CMakeLists.txt	2015-11-12 22:05:26.603282630 -0500
+@@ -604,11 +604,11 @@ if(USE_UPNP)
  endif()
  
+ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+-	include(FindPolarSSL)
++	include(FindMbedTLS)
+ endif()
+-if(POLARSSL_FOUND AND POLARSSL_WORKS)
+-	message("Using shared PolarSSL")
+-	include_directories(${POLARSSL_INCLUDE_DIR})
++if(MBEDTLS_FOUND)
++	message("Using shared mbed TLS")
++	include_directories(${MBEDTLS_INCLUDE_DIRS})
+ else()
+ 	message("Using PolarSSL from Externals")
+ 	set(POLARSSL_LIBRARY polarssl)
+diff -rupN dolphin-4.0-hotfixes-orig/CMakeTests/FindMbedTLS.cmake dolphin-4.0-hotfixes/CMakeTests/FindMbedTLS.cmake
+--- dolphin-4.0-hotfixes-orig/CMakeTests/FindMbedTLS.cmake	1969-12-31 19:00:00.000000000 -0500
++++ dolphin-4.0-hotfixes/CMakeTests/FindMbedTLS.cmake	2015-11-12 22:39:41.210636652 -0500
+@@ -0,0 +1,19 @@
++find_path(MBEDTLS_INCLUDE_DIR polarssl/ssl.h)
++
++find_library(MBEDTLS_LIBRARY mbedtls)
++
++set(MBEDTLS_INCLUDE_DIRS ${MBEDTLS_INCLUDE_DIR})
++set(MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARY} )
++
++set(CMAKE_REQUIRED_INCLUDES ${MBEDTLS_INCLUDE_DIRS})
++check_cxx_source_compiles("
++	#include <polarssl/version.h>
++	int main() {}"
++	MBEDTLS_VERSION_OK)
++
++include(FindPackageHandleStandardArgs)
++find_package_handle_standard_args(MBEDTLS DEFAULT_MSG
++	MBEDTLS_INCLUDE_DIR MBEDTLS_LIBRARY MBEDTLS_VERSION_OK)
++
++mark_as_advanced(MBEDTLS_INCLUDE_DIR MBEDTLS_LIBRARY)
++
+diff -rupN dolphin-4.0-hotfixes-orig/CMakeTests/FindPolarSSL.cmake dolphin-4.0-hotfixes/CMakeTests/FindPolarSSL.cmake
+--- dolphin-4.0-hotfixes-orig/CMakeTests/FindPolarSSL.cmake	2013-11-29 16:05:19.000000000 -0500
++++ dolphin-4.0-hotfixes/CMakeTests/FindPolarSSL.cmake	1969-12-31 19:00:00.000000000 -0500
+@@ -1,59 +0,0 @@
+-# Locate polarssl library
+-# This module defines
+-#  POLARSSL_FOUND
+-#  POLARSSL_LIBRARY
+-#  POLARSSL_INCLUDE_DIR
+-#  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
+-#  needed by dolphin-emu
+-
+-if(POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
+-	# Already in cache, be silent
+-	set(POLARSSL_FIND_QUIETLY TRUE)
+-endif()
+-
 -find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h)
 -find_library(POLARSSL_LIBRARY polarssl)
 -
- if (POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
- 	set (POLARSSL_FOUND TRUE)
- endif ()
-@@ -24,30 +30,48 @@ if (POLARSSL_FOUND)
- 		message (STATUS "Found the polarssl headers at ${POLARSSL_INCLUDE_DIR}")
- 	endif (NOT POLARSSL_FIND_QUIETLY)
- 
+-if (POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
+-	set (POLARSSL_FOUND TRUE)
+-endif ()
+-
+-if (POLARSSL_FOUND)
+-	if (NOT POLARSSL_FIND_QUIETLY)
+-		message (STATUS "Found the polarssl libraries at ${POLARSSL_LIBRARY}")
+-		message (STATUS "Found the polarssl headers at ${POLARSSL_INCLUDE_DIR}")
+-	endif (NOT POLARSSL_FIND_QUIETLY)
+-
 -	message(STATUS "Checking to see if system version contains necessary methods")
 -
- 	set(CMAKE_REQUIRED_INCLUDES ${POLARSSL_INCLUDE_DIR})
- 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
-+	unset(POLARSSL_WORKS CACHE)
- 	check_cxx_source_compiles("
-+	#include <polarssl/ctr_drbg.h>
-+	#include <polarssl/entropy.h>
- 	#include <polarssl/net.h>
- 	#include <polarssl/ssl.h>
+-	set(CMAKE_REQUIRED_INCLUDES ${POLARSSL_INCLUDE_DIR})
+-	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
+-	check_cxx_source_compiles("
+-	#include <polarssl/net.h>
+-	#include <polarssl/ssl.h>
 -	#include <polarssl/havege.h>
-+	#include <polarssl/version.h>
-+
-+	#if POLARSSL_VERSION_NUMBER < 0x01030000
-+	#error \"Shared PolarSSL version is too old\"
-+	#endif
-+
- 	int main()
- 	{
+-	int main()
+-	{
 -	ssl_context ctx;
 -	ssl_session session;
 -	havege_state hs;
@@ -62,46 +92,32 @@ diff -rupN dolphin-emu-2879cbd2b564-orig/CMakeTests/FindPolarSSL.cmake dolphin-e
 -	ssl_close_notify(&ctx);
 -	ssl_session_free(&session);
 -	ssl_free(&ctx);
-+		ssl_context ctx;
-+		ssl_session session;
-+		entropy_context entropy;
-+		ctr_drbg_context ctr_drbg;
-+		x509_crt cacert;
-+		x509_crt clicert;
-+		pk_context pk;
-+
-+		ssl_init(&ctx);
-+		entropy_init(&entropy);
-+
-+		const char* pers = \"dolphin-emu\";
-+		ctr_drbg_init(&ctr_drbg, entropy_func,
-+		                    &entropy,
-+		                    (const unsigned char*)pers,
-+		                    strlen(pers));
-+	
-+		ssl_set_rng(&ctx, ctr_drbg_random, &ctr_drbg);
-+		ssl_set_session(&ctx, &session);
-+
-+		ssl_close_notify(&ctx);
-+		ssl_session_free(&session);
-+		ssl_free(&ctx);
-+		entropy_free(&entropy);
- 
+-
 -	return 0;
-+		return 0;
- 	}"
- 	POLARSSL_WORKS)
- 
-@@ -55,5 +79,5 @@ else ()
- 	message (STATUS "Could not find polarssl")
- endif ()
- 
+-	}"
+-	POLARSSL_WORKS)
+-
+-else ()
+-	message (STATUS "Could not find polarssl")
+-endif ()
+-
 -MARK_AS_ADVANCED(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
-+mark_as_advanced(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
+-
+diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/CMakeLists.txt dolphin-4.0-hotfixes/Source/Core/Core/CMakeLists.txt
+--- dolphin-4.0-hotfixes-orig/Source/Core/Core/CMakeLists.txt	2015-11-12 22:05:49.907168216 -0500
++++ dolphin-4.0-hotfixes/Source/Core/Core/CMakeLists.txt	2015-11-12 22:05:26.603282630 -0500
+@@ -232,7 +232,7 @@ if(LIBUSB_FOUND)
+ 	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+ endif(LIBUSB_FOUND)
  
-diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
---- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	1979-11-30 00:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2014-12-09 13:16:30.203433018 -0500
+-set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
++set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
+ 
+ if(WIN32)
+ 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
+diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
+--- dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2013-11-29 16:05:19.000000000 -0500
++++ dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2015-11-12 21:50:16.952626105 -0500
 @@ -28,12 +28,12 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_H
  			ssl_session_free(&_SSL[i].session);
  			ssl_free(&_SSL[i].ctx);
@@ -220,9 +236,9 @@ diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HL
  				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
  			}
  			else
-diff -rupN dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
---- dolphin-emu-2879cbd2b564-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	1979-11-30 00:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2014-12-09 13:15:25.489951749 -0500
+diff -rupN dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
+--- dolphin-4.0-hotfixes-orig/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2013-11-29 16:05:19.000000000 -0500
++++ dolphin-4.0-hotfixes/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-11-12 21:50:16.952626105 -0500
 @@ -9,7 +9,7 @@
  
  #include <polarssl/net.h>
