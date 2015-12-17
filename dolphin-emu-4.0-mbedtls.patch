@@ -1,6 +1,6 @@
 diff -rupN dolphin-emu-2879cbd2b564-org/CMakeLists.txt dolphin-emu-2879cbd2b564-mbedtls/CMakeLists.txt
 --- dolphin-emu-2879cbd2b564-org/CMakeLists.txt	2015-12-11 10:37:55.296867986 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/CMakeLists.txt	2015-12-13 15:40:12.729765973 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/CMakeLists.txt	2015-12-17 10:10:40.622598000 -0500
 @@ -603,11 +603,11 @@ if(USE_UPNP)
  endif()
  
@@ -19,8 +19,8 @@ diff -rupN dolphin-emu-2879cbd2b564-org/CMakeLists.txt dolphin-emu-2879cbd2b564-
  	set(POLARSSL_LIBRARY polarssl)
 diff -rupN dolphin-emu-2879cbd2b564-org/CMakeTests/FindMbedTLS.cmake dolphin-emu-2879cbd2b564-mbedtls/CMakeTests/FindMbedTLS.cmake
 --- dolphin-emu-2879cbd2b564-org/CMakeTests/FindMbedTLS.cmake	1969-12-31 19:00:00.000000000 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/CMakeTests/FindMbedTLS.cmake	2015-12-15 11:17:21.587062738 -0500
-@@ -0,0 +1,23 @@
++++ dolphin-emu-2879cbd2b564-mbedtls/CMakeTests/FindMbedTLS.cmake	2015-12-17 10:11:05.075818499 -0500
+@@ -0,0 +1,20 @@
 +find_path(MBEDTLS_INCLUDE_DIR mbedtls/ssl.h)
 +
 +find_library(MBEDTLS_LIBRARY mbedtls)
@@ -33,9 +33,6 @@ diff -rupN dolphin-emu-2879cbd2b564-org/CMakeTests/FindMbedTLS.cmake dolphin-emu
 +set(CMAKE_REQUIRED_INCLUDES ${MBEDTLS_INCLUDE_DIRS})
 +check_cxx_source_compiles("
 +	#include <mbedtls/version.h>
-+	#if MBEDTLS_VERSION_NUMBER < 0x02010100
-+	#error \"Your mbed TLS version is too old.\"
-+	#endif
 +	int main() {}"
 +	MBEDTLS_VERSION_OK)
 +
@@ -109,7 +106,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/CMakeTests/FindPolarSSL.cmake dolphin-em
 -
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Common/Src/Crypto/tools.h dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Common/Src/Crypto/tools.h
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Common/Src/Crypto/tools.h	2015-12-11 10:37:53.796117985 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Common/Src/Crypto/tools.h	2015-12-13 15:46:16.506765973 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Common/Src/Crypto/tools.h	2015-12-17 10:10:40.648611000 -0500
 @@ -4,7 +4,8 @@
  
  #ifndef _TOOLS_H
@@ -122,7 +119,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Common/Src/Crypto/tools.h do
  int bn_compare(u8 *a, u8 *b, u32 n);
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/CMakeLists.txt dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/CMakeLists.txt
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Core/CMakeLists.txt	2015-12-11 10:37:52.918679486 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/CMakeLists.txt	2015-12-13 15:40:12.822765973 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/CMakeLists.txt	2015-12-17 10:10:40.650611999 -0500
 @@ -232,7 +232,7 @@ if(LIBUSB_FOUND)
  	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
  endif(LIBUSB_FOUND)
@@ -134,7 +131,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/CMakeLists.txt dolphin-
  	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/ec_wii.cpp dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/ec_wii.cpp
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/ec_wii.cpp	2015-12-11 10:37:53.281860985 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/ec_wii.cpp	2015-12-13 15:44:45.667765973 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/ec_wii.cpp	2015-12-17 10:10:40.652613000 -0500
 @@ -11,7 +11,8 @@
  #include <string.h>
  #include "Common.h"
@@ -147,7 +144,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/ec_wii.cpp dolphin-
  #include "ec_wii.h"
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2015-12-11 10:37:53.038739485 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2015-12-15 10:24:03.983059738 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp	2015-12-17 10:10:40.654613999 -0500
 @@ -27,13 +27,14 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_H
  			ssl_close_notify(&_SSL[i].ctx);
  			ssl_session_free(&_SSL[i].session);
@@ -318,7 +315,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE
  		else
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-12-11 10:37:53.038739485 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-12-15 10:28:57.231610736 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h	2015-12-17 10:10:40.656615000 -0500
 @@ -7,9 +7,11 @@
  
  #include "WII_IPC_HLE_Device.h"
@@ -353,7 +350,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE
  	bool active;
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/Movie.cpp dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/Movie.cpp
 --- dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/Movie.cpp	2015-12-11 10:37:53.263851985 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/Movie.cpp	2015-12-14 14:44:59.409741961 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/Core/Src/Movie.cpp	2015-12-17 10:10:40.658615999 -0500
 @@ -22,7 +22,8 @@
  #include "HW/EXI_Channel.h"
  #include "HW/DVDInterface.h"
@@ -393,7 +390,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/Core/Src/Movie.cpp dolphin-e
  
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.cpp dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.cpp
 --- dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.cpp	2015-12-11 10:37:54.814626985 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.cpp	2015-12-15 09:53:01.506286736 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.cpp	2015-12-17 10:10:40.660617000 -0500
 @@ -5,7 +5,7 @@
  #include "VolumeWiiCrypted.h"
  #include "VolumeGC.h"
@@ -405,7 +402,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.
  {
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.h dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.h
 --- dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.h	2015-12-11 10:37:54.814626985 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.h	2015-12-15 09:54:10.580806736 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DiscIO/Src/VolumeWiiCrypted.h	2015-12-17 10:10:40.662617999 -0500
 @@ -7,6 +7,8 @@
  
  #include "Volume.h"
@@ -417,7 +414,7 @@ diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/DiscIO/Src/VolumeWiiCrypted.
  // --- this volume type is used for encrypted Wii images ---
 diff -rupN dolphin-emu-2879cbd2b564-org/Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.h dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.h
 --- dolphin-emu-2879cbd2b564-org/Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.h	2015-12-11 10:37:53.807123486 -0500
-+++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.h	2015-12-15 09:52:39.546312236 -0500
++++ dolphin-emu-2879cbd2b564-mbedtls/Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.h	2015-12-17 10:10:40.663618500 -0500
 @@ -6,9 +6,11 @@
  #define _WII_SAVE_CRYPTED
  
