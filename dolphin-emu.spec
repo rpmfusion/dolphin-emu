@@ -1,105 +1,82 @@
 Name:           dolphin-emu
-Version:        4.0
-Release:        10%{?dist}
+Version:        5.0
+Release:        0.1rc%{?dist}
 Summary:        Gamecube / Wii / Triforce Emulator
+Group:          System/Emulators/Other
 
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
-#Download here: https://github.com/dolphin-emu/dolphin/archive/4.0-hotfixes.zip
-Source0:        %{name}-2879cbd2b564.zip
+Source0:        https://github.com/dolphin-emu/dolphin/archive/5.0-rc.tar.gz
 #Manpage from Ubuntu package
 Source1:        %{name}.1
-#Kudos to Richard on this one (allows for shared clrun lib):
-Patch0:         %{name}-%{version}-clrun.patch
-#Kudos to Hans de Goede (updates paths for compat-SFML16-devel):
-Patch1:         %{name}-%{version}-compat-SFML16.patch
-#GTK3 patch, bug: https://code.google.com/p/dolphin-emu/issues/detail?id=7069
-Patch2:         %{name}-%{version}-gtk3.patch
-#Use mbedtls, backported from upstream, see fedora bug:
-#https://bugzilla.redhat.com/show_bug.cgi?id=1069394
-#Also see rpmfusion bug for details:
-#https://bugzilla.rpmfusion.org/show_bug.cgi?id=2995
-Patch3:         %{name}-%{version}-mbedtls.patch
-#GCC 4.9+, mostly fixed upstream:
-Patch4:         %{name}-%{version}-gcc49.patch
-#Fixes X11 build failure, from arch linux:
-#https://www.archlinux.org/packages/community/x86_64/dolphin-emu/
-Patch5:         %{name}-%{version}-findx11.patch
+#GTK3 patch, upstream doesn't care for gtk3
+Patch0:         %{name}-%{version}-gtk3.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
+BuildRequires:  bochs-devel
 BuildRequires:  cmake
-BuildRequires:  cairo-devel
-BuildRequires:  glew-devel
+BuildRequires:  gtk3-devel
 BuildRequires:  libao-devel
-BuildRequires:  libjpeg-turbo-devel
 BuildRequires:  libpng-devel
+BuildRequires:  libusb-devel
 BuildRequires:  libXrandr-devel
 BuildRequires:  lzo-devel
-BuildRequires:  mesa-libGLU-devel
+BuildRequires:  mbedtls-devel >= 1.3.0
+BuildRequires:  mesa-libGL-devel
+BuildRequires:  miniupnpc-devel
 BuildRequires:  openal-soft-devel
 BuildRequires:  pulseaudio-libs-devel
 BuildRequires:  portaudio-devel
 BuildRequires:  SDL2-devel
-BuildRequires:  wxGTK3-devel
-BuildRequires:  gtk3-devel
-BuildRequires:  zlib-devel
-BuildRequires:  scons
-BuildRequires:  compat-SFML16-devel
+BuildRequires:  SFML-devel
 BuildRequires:  SOIL-devel
+BuildRequires:  soundtouch-devel
+BuildRequires:  wxGTK3-devel
+BuildRequires:  zlib-devel
+
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
-BuildRequires:  bochs-devel
-BuildRequires:  opencl-utils-devel
-BuildRequires:  soundtouch-devel
-BuildRequires:  mbedtls-devel >= 1.3.0
-BuildRequires:  miniupnpc-devel
-BuildRequires:  libusb-devel
+
+#Includes modified bundled bochs (unknown version)
+Provides:       bundled(bochs)
+#xxhash doesn't appear to be in fedora (unknown version)
+Provides:       bundled(xxhash)
 
 Requires:       hicolor-icon-theme
 
+#Most of below is taken bundled spec file in source#
 %description
-#taken from here: http://code.google.com/p/dolphin-emu/
-Dolphin is a Gamecube, Wii and Triforce (the arcade machine based on the
-Gamecube) emulator which supports many extra features and abilities not 
-present on the original consoles.
+Dolphin is an emulator for two Nintendo video game consoles, GameCube and the Wii.
+It allows PC gamers to enjoy games for these two consoles in full HD with several
+enhancements such as compatibility with all PC controllers, turbo speed,
+networked multiplayer, and more.
+Most games run perfectly or with minor bugs.
+
+%package nogui
+Summary:        Dolphin Emulator without a graphical user interface
+
+%description nogui
+Dolphin Emulator without a graphical user interface
+
+####################################################
 
 %prep
-%setup -q -n %{name}-2879cbd2b564
+%setup -q -n %{name}-%{version}-rc
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
-###CMAKE fixes
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
-#This is a typo: https://code.google.com/p/dolphin-emu/issues/detail?id=7074
-sed -i 's/soundtouch.h/SoundTouch.h/g' CMakeLists.txt
 
-###Remove all Bundled Libraries except Bochs:
+###Remove all Bundled code except Bochs and xxhash:
 cd Externals
-rm -f -r `ls | grep -v 'Bochs_disasm'`
-#Remove Bundled Bochs source and replace with links:
-cd Bochs_disasm
-rm -f -r `ls | grep -v 'PowerPC*' | grep -v 'CMakeLists.txt'`
-mv PowerPCDisasm.cpp PowerPCDisasm.cc
-sed -i 's/cpp/cc/' CMakeLists.txt
-ln -s /usr/include/bochs/config.h ./config.h
-ln -s /usr/include/bochs/disasm/*.cc ./
-ln -s /usr/include/bochs/disasm/*.inc ./
-ln -s /usr/include/bochs/disasm/*.h ./
+rm -f -r `ls | grep -v 'Bochs_disasm' | grep -v 'xxhash'`
 
 %build
 %cmake \
-       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
        -DBUILD_SHARED_LIBS=FALSE \
        -DENCODE_FRAMEDUMPS=FALSE \
-       -DUSE_EXTERNAL_CLRUN=TRUE \
        -DUSE_SHARED_GTK3=TRUE \
-       -DCLRUN_INCLUDE_PATH=%{_includedir}/opencl-utils/include \
        -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
        .
 
@@ -118,12 +95,14 @@ install -p -D -m 0644 %{SOURCE1} \
 
 %files -f %{name}.lang
 %doc license.txt Readme.txt docs/*
-%doc docs/ActionReplay/GCNCodeTypes.txt
 %{_datadir}/%{name}
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man1/%{name}.*
 %{_datadir}/pixmaps/%{name}.xpm
+
+%files nogui
+%{_bindir}/%{name}-nogui
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
@@ -138,6 +117,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Wed Mar 2 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.1rc
+- Update to 5.0rc
+
 * Thu Nov 12 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-10
 - Patch for mbedtls updated for 2.0+ (f23+)
 
