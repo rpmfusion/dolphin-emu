@@ -1,8 +1,7 @@
 Name:           dolphin-emu
 Version:        5.0
 Release:        0.1rc%{?dist}
-Summary:        Gamecube / Wii / Triforce Emulator
-Group:          System/Emulators/Other
+Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
@@ -14,15 +13,15 @@ Patch0:         %{name}-%{version}-gtk3.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
-BuildRequires:  bochs-devel
 BuildRequires:  cmake
+BuildRequires:  enet-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  libao-devel
+BuildRequires:  libevdev-devel
 BuildRequires:  libpng-devel
 BuildRequires:  libusb-devel
 BuildRequires:  libXrandr-devel
 BuildRequires:  lzo-devel
-BuildRequires:  mbedtls-devel >= 1.3.0
 BuildRequires:  mesa-libGL-devel
 BuildRequires:  miniupnpc-devel
 BuildRequires:  openal-soft-devel
@@ -42,15 +41,21 @@ BuildRequires:  desktop-file-utils
 Provides:       bundled(bochs)
 #xxhash doesn't appear to be in fedora (unknown version)
 Provides:       bundled(xxhash)
+#Dolphin does not support unbundling gtest
+#TODO upstream bug report
+Provides:       bundled(gtest)
+#Dolphin doesn't support changes in mbedtls API, which replaced polarssl
+#TODO upstream bug report
+Provides:       bundled(polarssl) = 1.3.8
 
 Requires:       hicolor-icon-theme
 
 #Most of below is taken bundled spec file in source#
 %description
-Dolphin is an emulator for two Nintendo video game consoles, GameCube and the Wii.
-It allows PC gamers to enjoy games for these two consoles in full HD with several
-enhancements such as compatibility with all PC controllers, turbo speed,
-networked multiplayer, and more.
+Dolphin is an emulator for two Nintendo video game consoles, GameCube and the
+Wii. It allows PC users to enjoy games for these two consoles in full HD with
+several enhancements such as compatibility with all PC controllers, turbo
+speed, networked multiplayer, and more.
 Most games run perfectly or with minor bugs.
 
 %package nogui
@@ -62,21 +67,17 @@ Dolphin Emulator without a graphical user interface
 ####################################################
 
 %prep
-%setup -q -n %{name}-%{version}-rc
+%setup -q -n dolphin-%{version}-rc
 %patch0 -p1
+#Fix an rpmlint warning:
+sed -i "/#!/d" Installer/%{name}.desktop
 
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
-###Remove all Bundled code except Bochs and xxhash:
-cd Externals
-rm -f -r `ls | grep -v 'Bochs_disasm' | grep -v 'xxhash'`
-
 %build
 %cmake \
-       -DBUILD_SHARED_LIBS=FALSE \
-       -DENCODE_FRAMEDUMPS=FALSE \
-       -DUSE_SHARED_GTK3=TRUE \
+       -DUSE_SHARED_ENET=TRUE \
        -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
        .
 
@@ -94,7 +95,7 @@ install -p -D -m 0644 %{SOURCE1} \
 %find_lang %{name}
 
 %files -f %{name}.lang
-%doc license.txt Readme.txt docs/*
+%doc license.txt Readme.md
 %{_datadir}/%{name}
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
@@ -102,6 +103,7 @@ install -p -D -m 0644 %{SOURCE1} \
 %{_datadir}/pixmaps/%{name}.xpm
 
 %files nogui
+%doc license.txt Readme.md
 %{_bindir}/%{name}-nogui
 
 %post
