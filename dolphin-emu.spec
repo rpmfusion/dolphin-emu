@@ -10,11 +10,22 @@ Source0:        https://github.com/dolphin-emu/dolphin/archive/5.0-rc.tar.gz
 Source1:        %{name}.1
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
+#Patch to enable use of shared gtest
+#TODO upstream bug report
+Patch1:         %{name}-%{version}-gtest.patch
+#Patch for mbedtls instead of polarssl
+#Fixed upstream, patch is based on these 3 commits:
+#https://github.com/Tilka/dolphin/commit/063446c46ff743d458b43025056bd01988b57ff6
+#https://github.com/Tilka/dolphin/commit/f6795466e767ee11e3f2c7d93c8f51abeabd29af
+#https://github.com/sepalani/dolphin/commit/5be64d39b0ab463edc286e789d21ebefa62cbaa7
+Patch2:         %{name}-%{version}-mbedtls.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
+BuildRequires:  bochs-devel
 BuildRequires:  cmake
 BuildRequires:  enet-devel
+BuildRequires:  gtest-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  libao-devel
 BuildRequires:  libevdev-devel
@@ -37,16 +48,10 @@ BuildRequires:  zlib-devel
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
 
-#Includes modified bundled bochs (unknown version)
-Provides:       bundled(bochs)
-#xxhash doesn't appear to be in fedora (unknown version)
-Provides:       bundled(xxhash)
-#Dolphin does not support unbundling gtest
-#TODO upstream bug report
-Provides:       bundled(gtest)
-#Dolphin doesn't support changes in mbedtls API, which replaced polarssl
-#TODO upstream bug report
-Provides:       bundled(polarssl) = 1.3.8
+#xxhash doesn't appear to be in Fedora, will unbundle if it's packaged
+#Note that xxhash was unversioned prior to 0.5.0, 0.4.39 is a placeholder
+#It was actually called r39: https://github.com/Cyan4973/xxHash/tree/r39
+Provides:       bundled(xxhash) = 0.4.39
 
 Requires:       hicolor-icon-theme
 
@@ -69,11 +74,22 @@ Dolphin Emulator without a graphical user interface
 %prep
 %setup -q -n dolphin-%{version}-rc
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
 #Fix an rpmlint warning:
 sed -i "/#!/d" Installer/%{name}.desktop
 
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
+
+###Remove Bundled Libraries except ones meantioned above:
+cd Externals
+rm -f -r `ls | grep -v 'Bochs_disasm'`
+#Remove Bundled Bochs source and replace with links:
+cd Bochs_disasm
+rm -f -r `ls | grep -v 'stdafx.*' | grep -v 'CMakeLists.txt' | grep -v 'Makefile.in'`
+ln -s %{_includedir}/bochs/config.h ./config.h
+ln -s %{_includedir}/bochs/disasm/* ./
 
 %build
 %cmake \
