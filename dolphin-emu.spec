@@ -33,6 +33,7 @@ BuildRequires:  libpng-devel
 BuildRequires:  libusb-devel
 BuildRequires:  libXrandr-devel
 BuildRequires:  lzo-devel
+BuildRequires:  mbedtls-devel
 BuildRequires:  mesa-libGL-devel
 BuildRequires:  miniupnpc-devel
 BuildRequires:  openal-soft-devel
@@ -82,9 +83,9 @@ sed -i "/#!/d" Installer/%{name}.desktop
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
-###Remove Bundled Libraries except ones meantioned above:
+###Remove Bundled Libraries except xxhash, mentioned above:
 cd Externals
-rm -f -r `ls | grep -v 'Bochs_disasm'`
+rm -f -r `ls | grep -v 'Bochs_disasm' | grep -v 'xxhash'`
 #Remove Bundled Bochs source and replace with links:
 cd Bochs_disasm
 rm -f -r `ls | grep -v 'stdafx.*' | grep -v 'CMakeLists.txt' | grep -v 'Makefile.in'`
