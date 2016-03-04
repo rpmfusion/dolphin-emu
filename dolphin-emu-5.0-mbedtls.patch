@@ -278,6 +278,15 @@
  	if (!data_file)
 --- a/Source/Core/Core/HW/WiiSaveCrypted.h
 +++ b/Source/Core/Core/HW/WiiSaveCrypted.h
+@@ -6,7 +6,7 @@
+ 
+ #include <string>
+ #include <vector>
+-#include <polarssl/aes.h>
++#include <mbedtls/aes.h>
+ 
+ #include "Common/CommonTypes.h"
+ 
 @@ -38,7 +38,7 @@ private:
  	static const u8 s_md5_blanker[16];
  	static const u32 s_ng_id;
@@ -444,7 +453,7 @@
  			else
  			{
 -				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
-+				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr, ssl->hostname.c_str());
++				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
  				Memory::Write_U32(SSL_OK, _BufferIn);
  			}
  
@@ -467,7 +476,7 @@
  			else
  			{
 -				ssl_set_own_cert(&ssl->ctx, &ssl->clicert, &ssl->pk);
-+				mbedtls_ssl_set_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
++				mbedtls_ssl_conf_own_cert(&ssl->config, &ssl->clicert, &ssl->pk);
  				Memory::Write_U32(SSL_OK, _BufferIn);
  			}
  
@@ -500,7 +509,7 @@
  			else
  			{
 -				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
-+				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr, ssl->hostname.c_str());
++				mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
  				Memory::Write_U32(SSL_OK, _BufferIn);
  			}
  			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
@@ -760,7 +769,7 @@
  			// but that won't affect anything, because we won't
  			// use the content of m_pBuffer anymore after this
 -			aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, s_block_data_size, m_pBuffer + 0x3D0,
-+			mbedtls_aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, s_block_data_size, m_pBuffer + 0x3D0,
++			mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size, m_pBuffer + 0x3D0,
  			              m_pBuffer + s_block_header_size, m_LastDecryptedBlock);
  			m_LastDecryptedBlockOffset = Block;
  
@@ -769,7 +778,7 @@
  			return false;
  		}
 -		aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD);
-+		mbedtls_aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD);
++		mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD);
  
  
  		// Some clusters have invalid data and metadata because they aren't

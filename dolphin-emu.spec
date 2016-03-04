@@ -6,12 +6,14 @@ Summary:        GameCube / Wii / Triforce Emulator
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
 Source0:        https://github.com/dolphin-emu/dolphin/archive/5.0-rc.tar.gz
-#Manpage from Ubuntu package
-Source1:        %{name}.1
+#Manpages, submitted upstream:
+#https://bugs.dolphin-emu.org/issues/9403
+Source1:        %{name}.6
+Source2:        %{name}-nogui.6
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
 #Patch to enable use of shared gtest
-#TODO upstream bug report
+#https://bugs.dolphin-emu.org/issues/9402
 Patch1:         %{name}-%{version}-gtest.patch
 #Patch for mbedtls instead of polarssl
 #Fixed upstream, patch is based on these 3 commits:
@@ -49,6 +51,9 @@ BuildRequires:  zlib-devel
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
 
+#Only the following architectures are supported:
+ExclusiveArch:  x86_64 armv7l aarch64
+
 #xxhash doesn't appear to be in Fedora, will unbundle if it's packaged
 #Note that xxhash was unversioned prior to 0.5.0, 0.4.39 is a placeholder
 #It was actually called r39: https://github.com/Cyan4973/xxHash/tree/r39
@@ -58,10 +63,10 @@ Requires:       hicolor-icon-theme
 
 #Most of below is taken bundled spec file in source#
 %description
-Dolphin is an emulator for two Nintendo video game consoles, GameCube and the
-Wii. It allows PC users to enjoy games for these two consoles in full HD with
-several enhancements such as compatibility with all PC controllers, turbo
-speed, networked multiplayer, and more.
+Dolphin is a Gamecube, Wii and Triforce (the arcade machine based on the
+Gamecube) emulator, which supports full HD video with several enhancements such
+as compatibility with all PC controllers, turbo speed, networked multiplayer,
+and more.
 Most games run perfectly or with minor bugs.
 
 %package nogui
@@ -85,10 +90,10 @@ sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
 ###Remove Bundled Libraries except xxhash, mentioned above:
 cd Externals
-rm -f -r `ls | grep -v 'Bochs_disasm' | grep -v 'xxhash'`
+rm -rf `ls | grep -v 'Bochs' | grep -v 'xxhash' | grep -v 'GL'`
 #Remove Bundled Bochs source and replace with links:
 cd Bochs_disasm
-rm -f -r `ls | grep -v 'stdafx.*' | grep -v 'CMakeLists.txt' | grep -v 'Makefile.in'`
+rm -rf `ls | grep -v 'stdafx' | grep -v 'CMakeLists.txt'`
 ln -s %{_includedir}/bochs/config.h ./config.h
 ln -s %{_includedir}/bochs/disasm/* ./
 
@@ -105,9 +110,9 @@ make %{?_smp_mflags} install DESTDIR=%{buildroot}
 
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 
-#Install manpage:
-install -p -D -m 0644 %{SOURCE1} \
-    %{buildroot}/%{_mandir}/man1/%{name}.1
+#Install manpages:
+install -p -D -m 0644 %{SOURCE1} %{buildroot}/%{_mandir}/man1/%{name}.6
+install -p -D -m 0644 %{SOURCE2} %{buildroot}/%{_mandir}/man1/%{name}-nogui.6
 
 %find_lang %{name}
 
@@ -122,6 +127,7 @@ install -p -D -m 0644 %{SOURCE1} \
 %files nogui
 %doc license.txt Readme.md
 %{_bindir}/%{name}-nogui
+%{_mandir}/man1/%{name}-nogui.*
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
@@ -136,8 +142,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
-* Wed Mar 2 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.1rc
+* Thu Mar 3 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.1rc
 - Update to 5.0rc
+- Updated manpage
 
 * Thu Nov 12 2015 Jeremy Newton <alexjnewt at hotmail dot com> - 4.0-10
 - Patch for mbedtls updated for 2.0+ (f23+)
