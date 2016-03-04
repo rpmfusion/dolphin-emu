@@ -111,8 +111,8 @@ make %{?_smp_mflags} install DESTDIR=%{buildroot}
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 
 #Install manpages:
-install -p -D -m 0644 %{SOURCE1} %{buildroot}/%{_mandir}/man1/%{name}.6
-install -p -D -m 0644 %{SOURCE2} %{buildroot}/%{_mandir}/man1/%{name}-nogui.6
+install -p -D -m 0644 %{SOURCE1} %{buildroot}/%{_mandir}/man6/%{name}.6
+install -p -D -m 0644 %{SOURCE2} %{buildroot}/%{_mandir}/man6/%{name}-nogui.6
 
 %find_lang %{name}
 
@@ -121,13 +121,13 @@ install -p -D -m 0644 %{SOURCE2} %{buildroot}/%{_mandir}/man1/%{name}-nogui.6
 %{_datadir}/%{name}
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
-%{_mandir}/man1/%{name}.*
+%{_mandir}/man6/%{name}.*
 %{_datadir}/pixmaps/%{name}.xpm
 
 %files nogui
 %doc license.txt Readme.md
 %{_bindir}/%{name}-nogui
-%{_mandir}/man1/%{name}-nogui.*
+%{_mandir}/man6/%{name}-nogui.*
 
 %post
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
