@@ -11,8 +11,8 @@ Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
 Source0:        https://github.com/%{name}/dolphin/archive/5.0-rc.tar.gz
 #Grab the current manpages from upstream (will be added for 5.0):
-Source1:        https://raw.githubusercontent.com/%{name}/dolphin/mpcommit/Data/%{name}.6
-Source2:        https://raw.githubusercontent.com/%{name}/dolphin/mpcommit/Data/%{name}-nogui.6
+Source1:        https://raw.githubusercontent.com/%{name}/dolphin/%{mpcommit}/Data/%{name}.6
+Source2:        https://raw.githubusercontent.com/%{name}/dolphin/%{mpcommit}/Data/%{name}-nogui.6
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
 #Patch to enable use of shared gtest
