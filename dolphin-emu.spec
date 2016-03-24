@@ -1,15 +1,18 @@
+%undefine _hardened_build
+#Git commit hash for manpages
+%global mpcommit 84483a1076710666109bea3b4254b01e9d9f6f6b
+
 Name:           dolphin-emu
 Version:        5.0
-Release:        0.1rc%{?dist}
+Release:        0.2rc%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
-Source0:        https://github.com/dolphin-emu/dolphin/archive/5.0-rc.tar.gz
-#Manpages, submitted upstream:
-#https://bugs.dolphin-emu.org/issues/9403
-Source1:        %{name}.6
-Source2:        %{name}-nogui.6
+Source0:        https://github.com/%{name}/dolphin/archive/5.0-rc.tar.gz
+#Grab the current manpages from upstream (will be added for 5.0):
+Source1:        https://raw.githubusercontent.com/%{name}/dolphin/mpcommit/Data/%{name}.6
+Source2:        https://raw.githubusercontent.com/%{name}/dolphin/mpcommit/Data/%{name}-nogui.6
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
 #Patch to enable use of shared gtest
@@ -142,6 +145,10 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Mar 24 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.2rc
+- Update manpages to upstream
+- Disable hardened build (breaks dolphin)
+
 * Thu Mar 3 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.1rc
 - Update to 5.0rc
 - Updated manpage
