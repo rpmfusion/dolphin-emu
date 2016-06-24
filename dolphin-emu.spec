@@ -1,29 +1,15 @@
 %undefine _hardened_build
-#Git commit hash for manpages
-%global mpcommit 84483a1076710666109bea3b4254b01e9d9f6f6b
 
 Name:           dolphin-emu
 Version:        5.0
-Release:        0.2rc%{?dist}
+Release:        1%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            http://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
-Source0:        https://github.com/%{name}/dolphin/archive/5.0-rc.tar.gz
-#Grab the current manpages from upstream (will be added for 5.0):
-Source1:        https://raw.githubusercontent.com/%{name}/dolphin/%{mpcommit}/Data/%{name}.6
-Source2:        https://raw.githubusercontent.com/%{name}/dolphin/%{mpcommit}/Data/%{name}-nogui.6
+Source0:        https://github.com/%{name}/dolphin/archive/%{version}.tar.gz
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
-#Patch to enable use of shared gtest
-#https://bugs.dolphin-emu.org/issues/9402
-Patch1:         %{name}-%{version}-gtest.patch
-#Patch for mbedtls instead of polarssl
-#Fixed upstream, patch is based on these 3 commits:
-#https://github.com/Tilka/dolphin/commit/063446c46ff743d458b43025056bd01988b57ff6
-#https://github.com/Tilka/dolphin/commit/f6795466e767ee11e3f2c7d93c8f51abeabd29af
-#https://github.com/sepalani/dolphin/commit/5be64d39b0ab463edc286e789d21ebefa62cbaa7
-Patch2:         %{name}-%{version}-mbedtls.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
@@ -81,10 +67,8 @@ Dolphin Emulator without a graphical user interface
 ####################################################
 
 %prep
-%setup -q -n dolphin-%{version}-rc
+%setup -q -n dolphin-%{version}
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
 #Fix an rpmlint warning:
 sed -i "/#!/d" Installer/%{name}.desktop
 
@@ -112,10 +96,6 @@ make %{?_smp_mflags}
 make %{?_smp_mflags} install DESTDIR=%{buildroot}
 
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
-
-#Install manpages:
-install -p -D -m 0644 %{SOURCE1} %{buildroot}/%{_mandir}/man6/%{name}.6
-install -p -D -m 0644 %{SOURCE2} %{buildroot}/%{_mandir}/man6/%{name}-nogui.6
 
 %find_lang %{name}
 
@@ -145,6 +125,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Fri Jun 24 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-1
+- Update to 5.0
+
 * Thu Mar 24 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-0.2rc
 - Update manpages to upstream
 - Disable hardened build (breaks dolphin)
