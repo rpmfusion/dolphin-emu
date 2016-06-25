@@ -5,7 +5,7 @@ Version:        5.0
 Release:        1%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
-Url:            http://dolphin-emu.org/
+Url:            https://dolphin-emu.org/
 License:        GPLv2 and BSD and Public Domain
 Source0:        https://github.com/%{name}/dolphin/archive/%{version}.tar.gz
 #GTK3 patch, upstream doesn't care for gtk3
@@ -19,6 +19,7 @@ BuildRequires:  enet-devel
 BuildRequires:  gtest-devel
 BuildRequires:  gtk3-devel
 BuildRequires:  libao-devel
+BuildRequires:  libcurl-devel
 BuildRequires:  libevdev-devel
 BuildRequires:  libpng-devel
 BuildRequires:  libusb-devel
@@ -69,8 +70,6 @@ Dolphin Emulator without a graphical user interface
 %prep
 %setup -q -n dolphin-%{version}
 %patch0 -p1
-#Fix an rpmlint warning:
-sed -i "/#!/d" Installer/%{name}.desktop
 
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
@@ -87,6 +86,7 @@ ln -s %{_includedir}/bochs/disasm/* ./
 %build
 %cmake \
        -DUSE_SHARED_ENET=TRUE \
+       -DUSE_SHARED_GTEST=TRUE \
        -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
        .
 
@@ -105,7 +105,7 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man6/%{name}.*
-%{_datadir}/pixmaps/%{name}.xpm
+%{_datadir}/icons/hicolor/*/apps/%{name}.*
 
 %files nogui
 %doc license.txt Readme.md
