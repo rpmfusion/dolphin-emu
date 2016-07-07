@@ -2,7 +2,7 @@
 
 Name:           dolphin-emu
 Version:        5.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            https://dolphin-emu.org/
@@ -10,6 +10,8 @@ License:        GPLv2 and BSD and Public Domain
 Source0:        https://github.com/%{name}/dolphin/archive/%{version}.tar.gz
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
+#Minor fix for mbedtls 2.3+
+Patch1:         %{name}-%{version}-mbedtls2.3.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  bluez-libs-devel
@@ -44,7 +46,7 @@ BuildRequires:  desktop-file-utils
 #Only the following architectures are supported:
 ExclusiveArch:  x86_64 armv7l aarch64
 
-#xxhash doesn't appear to be in Fedora, will unbundle if it's packaged
+#xxhash doesn't appear to be in Fedora, if it's packaged it will unbundled
 #Note that xxhash was unversioned prior to 0.5.0, 0.4.39 is a placeholder
 #It was actually called r39: https://github.com/Cyan4973/xxHash/tree/r39
 Provides:       bundled(xxhash) = 0.4.39
@@ -70,6 +72,7 @@ Dolphin Emulator without a graphical user interface
 %prep
 %setup -q -n dolphin-%{version}
 %patch0 -p1
+%patch1 -p1
 
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
@@ -125,6 +128,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Thu Jul 7 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-2
+- Added patch for building with mbedtls 2.3+
+
 * Fri Jun 24 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-1
 - Update to 5.0
 
