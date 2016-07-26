@@ -2,7 +2,7 @@
 
 Name:           dolphin-emu
 Version:        5.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            https://dolphin-emu.org/
@@ -37,6 +37,7 @@ BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
 BuildRequires:  SOIL-devel
 BuildRequires:  soundtouch-devel
+BuildRequires:  systemd-devel
 BuildRequires:  wxGTK3-devel
 BuildRequires:  zlib-devel
 
@@ -128,6 +129,10 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Jul 25 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-3
+- Added systemd-devel as build require
+- Rebuild for miniupnpc-2.0
+
 * Thu Jul 7 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-2
 - Added patch for building with mbedtls 2.3+
 
