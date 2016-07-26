@@ -2,7 +2,7 @@
 
 Name:           dolphin-emu
 Version:        5.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            https://dolphin-emu.org/
@@ -78,6 +78,9 @@ Dolphin Emulator without a graphical user interface
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
+#Patch for curl 7.5.0
+sed -i 's/typedef void CURL/typedef struct Curl_easy CURL/g' Source/Core/Common/Analytics.h
+
 ###Remove Bundled Libraries except xxhash, mentioned above:
 cd Externals
 rm -rf `ls | grep -v 'Bochs' | grep -v 'xxhash' | grep -v 'GL'`
@@ -129,6 +132,9 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Jul 25 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-4
+- Patch for curl 7.5.0
+
 * Mon Jul 25 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-3
 - Added systemd-devel as build require
 - Rebuild for miniupnpc-2.0
