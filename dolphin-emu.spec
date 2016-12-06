@@ -2,7 +2,7 @@
 
 Name:           dolphin-emu
 Version:        5.0
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        GameCube / Wii / Triforce Emulator
 
 Url:            https://dolphin-emu.org/
@@ -10,7 +10,8 @@ License:        GPLv2 and BSD and Public Domain
 Source0:        https://github.com/%{name}/dolphin/archive/%{version}.tar.gz
 #GTK3 patch, upstream doesn't care for gtk3
 Patch0:         %{name}-%{version}-gtk3.patch
-#Minor fix for mbedtls 2.3+
+#Missing include for mbedtls 2.3+, fixed upstream:
+#https://github.com/dolphin-emu/dolphin/commit/980ecfba7f934f91c021bdeec06d0518dd570bac
 Patch1:         %{name}-%{version}-mbedtls2.3.patch
 
 BuildRequires:  alsa-lib-devel
@@ -47,7 +48,8 @@ BuildRequires:  desktop-file-utils
 #Only the following architectures are supported:
 ExclusiveArch:  x86_64 armv7l aarch64
 
-#xxhash doesn't appear to be in Fedora, if it's packaged it will unbundled
+#xxhash is bundled for now, will be unbundled after included in Fedora:
+#https://bugzilla.redhat.com/show_bug.cgi?id=1282063
 #Note that xxhash was unversioned prior to 0.5.0, 0.4.39 is a placeholder
 #It was actually called r39: https://github.com/Cyan4973/xxHash/tree/r39
 Provides:       bundled(xxhash) = 0.4.39
@@ -71,15 +73,14 @@ Dolphin Emulator without a graphical user interface
 ####################################################
 
 %prep
-%setup -q -n dolphin-%{version}
-%patch0 -p1
-%patch1 -p1
+%autosetup -p1 -n dolphin-%{version}
 
 #Allow building with cmake macro
 sed -i '/CMAKE_C.*_FLAGS/d' CMakeLists.txt
 
-#Patch for curl 7.5.0
-sed -i 's/typedef void CURL/typedef struct Curl_easy CURL/g' Source/Core/Common/Analytics.h
+#Patch for fedora 26+
+#https://github.com/dolphin-emu/dolphin/pull/4496
+sed -i 's/CHAR_WIDTH/char_width/g' Source/Core/VideoBackends/OGL/RasterFont.cpp
 
 ###Remove Bundled Libraries except xxhash, mentioned above:
 cd Externals
@@ -91,23 +92,19 @@ ln -s %{_includedir}/bochs/config.h ./config.h
 ln -s %{_includedir}/bochs/disasm/* ./
 
 %build
-%cmake \
+%cmake . \
        -DUSE_SHARED_ENET=TRUE \
-       -DUSE_SHARED_GTEST=TRUE \
-       -DwxWidgets_CONFIG_EXECUTABLE=%{_libexecdir}/wxGTK3/wx-config \
-       .
-
-make %{?_smp_mflags}
+       -DUSE_SHARED_GTEST=TRUE
+%make_build
 
 %install
-make %{?_smp_mflags} install DESTDIR=%{buildroot}
-
+%make_install
 desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
-
 %find_lang %{name}
 
 %files -f %{name}.lang
-%doc license.txt Readme.md
+%doc Readme.md
+%license license.txt
 %{_datadir}/%{name}
 %{_bindir}/%{name}
 %{_datadir}/applications/%{name}.desktop
@@ -115,7 +112,8 @@ desktop-file-validate %{buildroot}/%{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.*
 
 %files nogui
-%doc license.txt Readme.md
+%doc Readme.md
+%license license.txt
 %{_bindir}/%{name}-nogui
 %{_mandir}/man6/%{name}-nogui.*
 
@@ -132,8 +130,13 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
+* Mon Dec 5 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-5
+- Revert patch for curl 7.50
+- Spec cleanup and fixes
+- Add a patch for f26+
+
 * Mon Jul 25 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-4
-- Patch for curl 7.5.0
+- Patch for curl 7.50
 
 * Mon Jul 25 2016 Jeremy Newton <alexjnewt at hotmail dot com> - 5.0-3
 - Added systemd-devel as build require
